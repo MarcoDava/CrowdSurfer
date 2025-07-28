@@ -1,44 +1,5 @@
 # CrowdSurfer
 
-Problem:
-Students often are unaware of how full a building is
-
-4 methods
-
-Bluetooth:
-Scans the amount of people in the area using bluetooth.
-
-Pros:
-Non-invasive
-Accurate
-Does not need external permission
-Phone app
-Cons:
-Limited Range
-Can miss people that dont have bluetooth active
-
-Mac Address:
-Uses the wifi and takes the mac address of everyone using the internet
-
-Computer vision
-
-
-Location Services
-Will use other users locations to track places that are crowded
-
-Pros:
-Non-invasive
-Accurate
-Phone app
-Could be combined with bluetooth
-
-Cons:
-User Based
-Requires database
-
-
-Final verdict: Bluetooth and Location Services
-
 How the app will work:
 It will ping the users location every 1-2 minutes and adds it into a database of user locations. It will then use all the locations in the database to determine how full an area is.
 Additions:
@@ -73,7 +34,7 @@ Can show where your friends are if you add them on the app
 Can make yourself invisible or visible with a status (Will still add their location to a heatmap, but friends cannot see where you are).
 Shows route to get from class to class
 
-App Framework:
+User Flow Map:
 Users clicks on the app.
 User location is shared
 User Location added to occupancy level (post to backend)
@@ -92,4 +53,24 @@ Costs:
 Deployment on Android: $25
 Deployment on Apple: $25
 
-MVP: Uses location services
+
+MVP: Shows occupancy level of an area through simple text (very busy, busy, not that busy, quiet)
+
+Final: Surveys, Login, Heatmap, Graph
+
+
+
+
+
+Tech Stack:
+Frontend:
+React Native
+Javascript/Typescript
+Backend:
+Python
+Database:
+MongoDB
+Framework:
+Django
+
+
