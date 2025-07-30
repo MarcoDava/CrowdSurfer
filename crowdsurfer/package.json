@@ -38,7 +38,8 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "expo-maps": "~0.11.0",
-    "expo-location": "~18.1.6"
+    "expo-location": "~18.1.6",
+    "expo-task-manager": "~13.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

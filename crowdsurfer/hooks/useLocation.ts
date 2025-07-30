@@ -1,49 +1,58 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { useEffect, useState } from 'react';
+// hooks/useLocationPolling.ts
+import { useEffect, useState, useRef } from 'react';
 import * as Location from 'expo-location';
 
-const useLocation = () => {
-  const [errorMsg, setErrorMsg] = useState<string>('');
-  const [longitude, setLongitude] = useState<number | null>(null);
-  const [latitude, setLatitude] = useState<number | null>(null);
+const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-  const getUserLocation = async () => {
+const useLocation = () => {
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [countdown, setCountdown] = useState<number>(POLL_INTERVAL / 1000); // in seconds
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getLocation = async () => {
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
         const msg = 'Permission to access location was denied';
-        console.log(msg);
         setErrorMsg(msg);
         return;
       }
 
-      let { coords } = await Location.getCurrentPositionAsync();
+      const { coords } = await Location.getCurrentPositionAsync({});
+      setLatitude(coords.latitude);
+      setLongitude(coords.longitude);
+      console.log('Updated location:', coords.latitude, coords.longitude);
 
-      if (coords) {
-        const { latitude, longitude } = coords;
-        console.log('lat and long is', latitude, longitude);
-        setLatitude(latitude);
-        setLongitude(longitude);
-
-        let response = await Location.reverseGeocodeAsync({
-          latitude,
-          longitude,
-        });
-
-        console.log('USER LOCATION IS', response);
-      }
-    } catch (error) {
-      console.error('Location error:', error);
-      setErrorMsg('An error occurred while getting location');
+      // Reset countdown
+      setCountdown(POLL_INTERVAL / 1000);
+    } catch (err) {
+      console.error('Error fetching location:', err);
+      setErrorMsg('Error retrieving location.');
     }
   };
 
   useEffect(() => {
-    getUserLocation();
+    getLocation();
+
+    intervalRef.current = setInterval(getLocation, POLL_INTERVAL);
+
+    // Countdown tick every second
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
   }, []);
 
-  return { latitude, longitude, errorMsg };
+  return { latitude, longitude, errorMsg, countdown };
 };
 
 export default useLocation;

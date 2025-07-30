@@ -17,12 +17,23 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION", 
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE"]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
+    },
+    "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": ["location"],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location in the background to track your movement.",
+        "NSLocationWhenInUseUsageDescription": "We need your location to show where you are."
+      }
     },
     "plugins": [
       "expo-router",
@@ -43,6 +54,7 @@
         }
       ]
     ],
+
     "experiments": {
       "typedRoutes": true
     }
