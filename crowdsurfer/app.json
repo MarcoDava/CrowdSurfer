@@ -16,8 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -33,13 +32,6 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-maps",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow CrowdSurfer to use your location."
         }
       ]
     ],

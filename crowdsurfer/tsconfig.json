@@ -12,6 +12,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-, "hooks/useLocation.ts"  ]
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ]
 }
