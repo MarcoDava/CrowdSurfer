@@ -1,0 +1,401 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+
+const crowdLevels = [
+  {
+    id: 'quiet',
+    title: 'Quiet',
+    description: 'Plenty of space, very peaceful',
+    colors: ['#DCFCE7', '#BBF7D0'],
+    textColor: '#16A34A',
+    dotColor: '#16A34A',
+  },
+  {
+    id: 'not_busy',
+    title: 'Not Busy',
+    description: 'Some people around, still comfortable',
+    colors: ['#FEF3C7', '#FDE68A'],
+    textColor: '#D97706',
+    dotColor: '#F59E0B',
+  },
+  {
+    id: 'busy',
+    title: 'Busy',
+    description: 'Getting crowded, limited seating',
+    colors: ['#FED7D7', '#FECACA'],
+    textColor: '#EA580C',
+    dotColor: '#F97316',
+  },
+  {
+    id: 'very_busy',
+    title: 'Very Busy',
+    description: 'Packed, hard to find a seat',
+    colors: ['#FEE2E2', '#FECACA'],
+    textColor: '#DC2626',
+    dotColor: '#EF4444',
+  },
+];
+
+const mockLocations = [
+  {
+    id: '1',
+    name: 'Main Library - Level 2',
+    address: 'Main Library • Floor 2 • library',
+  },
+  {
+    id: '2',
+    name: 'Engineering Computer Lab',
+    address: 'Engineering Hall • Floor 1 • computer lab',
+  },
+  {
+    id: '3',
+    name: 'Campus Coffee & Study',
+    address: 'Student Center • Floor 1 • cafe',
+  },
+  {
+    id: '4',
+    name: 'Student Union Study Hall',
+    address: 'Student Union • Floor 3 • study hall',
+  },
+];
+
+export default function ReportScreen() {
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [selectedCrowdLevel, setSelectedCrowdLevel] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredLocations = mockLocations.filter(location =>
+    location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    location.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        {/* Report Crowd Level Section */}
+        <View style={styles.reportCard}>
+          <LinearGradient
+            colors={['#FED7D7', '#FECACA']}
+            style={styles.reportCardGradient}
+          >
+            <View style={styles.reportCardContent}>
+              <View style={styles.reportIcon}>
+                <LinearGradient
+                  colors={['#EA580C', '#DC2626']}
+                  style={styles.iconGradient}
+                >
+                  <Ionicons name="people" size={24} color="#FFFFFF" />
+                </LinearGradient>
+              </View>
+              <View style={styles.reportInfo}>
+                <Text style={styles.reportTitle}>Report Crowd Level</Text>
+                <Text style={styles.reportSubtitle}>Help others find quiet study spots</Text>
+                <View style={styles.infoBox}>
+                  <Ionicons name="time" size={12} color="#EA580C" />
+                  <Text style={styles.infoText}>Your report helps the community in real-time</Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Select Location Section */}
+        <View style={styles.locationSection}>
+          <Text style={styles.sectionTitle}>Select Location</Text>
+          
+          <View style={styles.searchContainer}>
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search locations..."
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </View>
+
+          <View style={styles.locationList}>
+            {filteredLocations.map((location) => (
+              <TouchableOpacity
+                key={location.id}
+                style={[
+                  styles.locationItem,
+                  selectedLocation === location.id && styles.selectedLocationItem,
+                ]}
+                onPress={() => setSelectedLocation(location.id)}
+              >
+                <View style={styles.locationItemContent}>
+                  <Ionicons name="location" size={16} color="#6B7280" />
+                  <View style={styles.locationItemInfo}>
+                    <Text style={styles.locationItemName}>{location.name}</Text>
+                    <Text style={styles.locationItemAddress}>{location.address}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Crowd Level Selection */}
+        {selectedLocation && (
+          <View style={styles.crowdLevelSection}>
+            <Text style={styles.sectionTitle}>How crowded is it?</Text>
+            <View style={styles.crowdLevelList}>
+              {crowdLevels.map((level) => (
+                <TouchableOpacity
+                  key={level.id}
+                  style={[
+                    styles.crowdLevelCard,
+                    selectedCrowdLevel === level.id && styles.selectedCrowdLevelCard,
+                  ]}
+                  onPress={() => setSelectedCrowdLevel(level.id)}
+                >
+                  <LinearGradient
+                    colors={level.colors}
+                    style={styles.crowdLevelGradient}
+                  >
+                    <View style={styles.crowdLevelContent}>
+                      <View style={[styles.crowdLevelDot, { backgroundColor: level.dotColor }]} />
+                      <View style={styles.crowdLevelInfo}>
+                        <Text style={[styles.crowdLevelTitle, { color: level.textColor }]}>
+                          {level.title}
+                        </Text>
+                        <Text style={[styles.crowdLevelDescription, { color: level.textColor }]}>
+                          {level.description}
+                        </Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Submit Button */}
+        {selectedLocation && selectedCrowdLevel && (
+          <TouchableOpacity style={styles.submitButton}>
+            <LinearGradient
+              colors={['#EA580C', '#DC2626']}
+              style={styles.submitButtonGradient}
+            >
+              <Text style={styles.submitButtonText}>Submit Report</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    gap: 24,
+  },
+  reportCard: {
+    borderRadius: 20,
+    shadowColor: '#A3B1C6',
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  reportCardGradient: {
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: -2, height: -2 },
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  reportCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  reportIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  iconGradient: {
+    flex: 1,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportInfo: {
+    flex: 1,
+    gap: 8,
+  },
+  reportTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  reportSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(234, 88, 12, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#EA580C',
+    flex: 1,
+  },
+  locationSection: {
+    gap: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  searchContainer: {
+    marginTop: 8,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+    shadowColor: '#A3B1C6',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#374151',
+  },
+  locationList: {
+    gap: 8,
+  },
+  locationItem: {
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    shadowColor: '#A3B1C6',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  selectedLocationItem: {
+    backgroundColor: '#E9D5FF',
+    borderWidth: 2,
+    borderColor: '#7C3AED',
+  },
+  locationItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+  },
+  locationItemInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  locationItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  locationItemAddress: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  crowdLevelSection: {
+    gap: 16,
+  },
+  crowdLevelList: {
+    gap: 12,
+  },
+  crowdLevelCard: {
+    borderRadius: 16,
+    shadowColor: '#A3B1C6',
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  selectedCrowdLevelCard: {
+    borderWidth: 3,
+    borderColor: '#7C3AED',
+  },
+  crowdLevelGradient: {
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: -2, height: -2 },
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  crowdLevelContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  crowdLevelDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  crowdLevelInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  crowdLevelTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  crowdLevelDescription: {
+    fontSize: 14,
+  },
+  submitButton: {
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  submitButtonGradient: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+}); 
