@@ -2,8 +2,10 @@ import React, {useState} from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import useLocation from '@/hooks/useLocation';
+import useLocationBackground from '@/hooks/useLocationBackground';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import KeyLocations from '@/data/KeyLocations.json'; 
+import UserLocations from '@/data/UserLocations.json';
 
 const INITIAL_REGION = {
   latitude: 43.2628,
@@ -14,34 +16,24 @@ const INITIAL_REGION = {
 
 
 export default function MapScreen() {
-  const { latitude, longitude, errorMsg } = useLocation();
+  const { latitude, longitude, errorMsg } = useLocationBackground();
 
-  const [markersList, setMarkersList] = useState ([
-    {
-      id:1,
-      latitude: 43.26303415211598, 
-      longitude:-79.91682057962812,
-      title:'Mills Library'
-    },
-    {
-      id:2,
-      latitude: 43.261315932442166, 
-      longitude: -79.92268169789286,
-      title:'Thode Library'
-    },
-    {
-      id:3,
-      latitude: 43.26023116192334, 
-      longitude: -79.91790253376291,
-      title:'Health Science Library'
-    },
-    {
-      id:4,
-      latitude: 43.26355215260572,  
-      longitude: -79.91773528312352,
-      title:'Student Union Study Hall'
-    },
-  ])
+  const [markersList, setMarkersList] = useState (
+    KeyLocations.map((item) => ({
+      id: item.id,
+      latitude: item.location.latitude,
+      longitude: item.location.longitude,
+      title: item.title,
+    }))
+  );
+
+  const [userList, setUserList] = useState(
+    UserLocations.map((item) => ({
+      id: item.id,
+      latitude: item.location.latitude,
+      longitude: item.location.longitude,
+    }))
+  );
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -139,6 +131,18 @@ export default function MapScreen() {
                   )
                 })
               } 
+              {
+                userList.map((user) => (
+                  <Marker
+                    key={user.id}
+                    coordinate={{
+                      latitude: user.latitude,
+                      longitude: user.longitude,
+                    }}
+                    image = {require('@/assets/images/userLocation.png')}
+                  />
+                ))
+              }
             </MapView>
                      
 

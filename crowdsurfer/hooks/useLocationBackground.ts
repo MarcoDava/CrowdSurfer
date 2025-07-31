@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 
 const LOCATION_TASK_NAME = 'background-location-task';
+const BACKGROUND_LOCATION_INTERVAL = 5 * 1000; // 5 minutes in milliseconds
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   if (error) {
@@ -34,7 +35,7 @@ const useLocationBackground = () => {
       }
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.High,
-        timeInterval: 300000, // 5 minutes in ms
+        timeInterval: BACKGROUND_LOCATION_INTERVAL, // 5 minutes in ms
         distanceInterval: 0,
         showsBackgroundLocationIndicator: true,
         foregroundService: {
