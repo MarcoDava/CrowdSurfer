@@ -1,11 +1,47 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import useLocation from '@/hooks/useLocation';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+
+const INITIAL_REGION = {
+  latitude: 43.2628,
+  longitude: -79.9177,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+};
+
 
 export default function MapScreen() {
   const { latitude, longitude, errorMsg } = useLocation();
+
+  const [markersList, setMarkersList] = useState ([
+    {
+      id:1,
+      latitude: 43.26303415211598, 
+      longitude:-79.91682057962812,
+      title:'Mills Library'
+    },
+    {
+      id:2,
+      latitude: 43.261315932442166, 
+      longitude: -79.92268169789286,
+      title:'Thode Library'
+    },
+    {
+      id:3,
+      latitude: 43.26023116192334, 
+      longitude: -79.91790253376291,
+      title:'Health Science Library'
+    },
+    {
+      id:4,
+      latitude: 43.26355215260572,  
+      longitude: -79.91773528312352,
+      title:'Student Union Study Hall'
+    },
+  ])
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -84,7 +120,28 @@ export default function MapScreen() {
               <Text style={styles.mapTitle}>Campus Map</Text>
             </View>
             <Text style={styles.mapSubtitle}>Interactive map coming soon</Text>
-            
+
+            <MapView 
+              style={styles.map} 
+              initialRegion={INITIAL_REGION}
+            >                    
+              {
+                markersList.map((marker) =>{
+                  return(
+                    <Marker
+                    key={marker.id}  
+                    coordinate={{
+                        latitude:marker.latitude, 
+                        longitude: marker.longitude
+                      }}
+                      title={marker.title}
+                    />
+                  )
+                })
+              } 
+            </MapView>
+                     
+
             <View style={styles.mapPlaceholder}>
               <Ionicons name="location" size={48} color="#2563EB" />
               <Text style={styles.mapPlaceholderTitle}>Map View</Text>
@@ -92,12 +149,13 @@ export default function MapScreen() {
                 Tap locations below to see details
               </Text>
             </View>
-
             <TouchableOpacity style={styles.fab}>
               <Ionicons name="add" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </LinearGradient>
+          
         </View>
+        
       </View>
     </ScrollView>
   );
@@ -306,5 +364,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  map: {
+  width: '100%',
+  height: 300, // or any height you want
+  borderRadius: 20,
   },
 });
