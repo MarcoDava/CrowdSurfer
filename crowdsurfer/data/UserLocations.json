@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "location": {
+      "latitude": 43.2628,
+      "longitude": -79.9192
+    }
+  },
+  {
+    "id": 2,
+    "location": {
+      "latitude": 43.261315932442166,
+      "longitude": -79.92268169789286
+    }
+  },
+  {
+    "id": 3,
+    "location": {
+      "latitude": 43.26023116192334,
+      "longitude": -79.91790253376291
+    }
+  },
+  {
+    "id": 4,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 5,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 6,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 7,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 8,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 9,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  },
+  {
+    "id": 10,
+    "location": {
+      "latitude": 43.26355215260572,
+      "longitude": -79.91773528312352
+    }
+  }
+]
