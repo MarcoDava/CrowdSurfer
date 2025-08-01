@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import useLocationBackground from '@/hooks/useLocationBackground';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Heatmap, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import KeyLocations from '@/data/KeyLocations.json'; 
 import UserLocations from '@/data/UserLocations.json';
 
@@ -27,7 +27,7 @@ export default function MapScreen() {
     }))
   );
 
-  const [userList, setUserList] = useState(
+  const [userListLocations, setUserListLocations] = useState(
     UserLocations.map((item) => ({
       id: item.id,
       latitude: item.location.latitude,
@@ -116,7 +116,22 @@ export default function MapScreen() {
             <MapView 
               style={styles.map} 
               initialRegion={INITIAL_REGION}
-            >                    
+            >
+            <Heatmap
+              points={UserLocations.map((user) => ({
+                latitude: user.latitude,
+                longitude: user.longitude,}
+              ))}
+              radius={40}
+              gradient={{
+                colors:["red", "orange", "yellow"],
+                startPoints: [0.2, 0.5, 0.8],
+                colorMapSize: 256,
+              }}
+            >
+              
+              </Heatmap>                   
+
               {
                 markersList.map((marker) =>{
                   return(
@@ -131,18 +146,7 @@ export default function MapScreen() {
                   )
                 })
               } 
-              {
-                userList.map((user) => (
-                  <Marker
-                    key={user.id}
-                    coordinate={{
-                      latitude: user.latitude,
-                      longitude: user.longitude,
-                    }}
-                    image = {require('@/assets/images/userLocation.png')}
-                  />
-                ))
-              }
+              
             </MapView>
                      
 
