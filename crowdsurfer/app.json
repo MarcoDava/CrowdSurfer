@@ -47,8 +47,7 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow CrowdSurfer to use your location."
         }
-      ],
-      "react-native-ble-plx"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
