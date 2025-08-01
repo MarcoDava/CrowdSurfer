@@ -10,8 +10,10 @@
   {
     "id": 2,
     "location": {
-      "latitude": 43.261315932442166,
-      "longitude": -79.92268169789286
+      "SWlatitude": 43.26088444642723,
+      "SWlongitude": -79.92283508928385,
+      "NElatitude": 43.26128556675797,
+      "NElongitude": -79.92229629490743
     },
     "title": "Thode Library"
   },
