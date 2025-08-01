@@ -16,7 +16,7 @@ const INITIAL_REGION = {
 
 
 export default function MapScreen() {
-  const { latitude, longitude, errorMsg } = useLocationBackground();
+  const { lagit titude, longitude, errorMsg } = useLocationBackground();
 
   const [markersList, setMarkersList] = useState (
     KeyLocations.map((item) => ({
