@@ -154,9 +154,9 @@ export default function MapScreen() {
               ))}
               radius={40}
               gradient={{
-                colors:["green", "orange", "red"],
+                colors:["red", "orange", "yellow"],
                 startPoints: [0.2, 0.5, 0.8],
-                colorMapSize: 100,
+                colorMapSize: 256,
               }}
             >
               
