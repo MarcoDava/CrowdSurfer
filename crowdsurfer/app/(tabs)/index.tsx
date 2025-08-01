@@ -6,6 +6,8 @@ import useLocationBackground from '@/hooks/useLocationBackground';
 import MapView, { Heatmap, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import KeyLocations from '@/data/KeyLocations.json'; 
 import UserLocations from '@/data/UserLocations.json';
+import userInformation from '@/data/UserInformation.json';
+
 
 const INITIAL_REGION = {
   latitude: 43.2628,
@@ -14,9 +16,31 @@ const INITIAL_REGION = {
   longitudeDelta: 0.05,
 };
 
+const formatCountdown = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
 
-export default function MapScreen() {
-  const { lagit titude, longitude, errorMsg } = useLocationBackground();
+
+
+
+export default function MapScreen() { 
+  const { latitude, longitude , errorMsg } = useLocationBackground(); 
+
+  const COUNTDOWN_TIME = 5 * 60; // 5 minutes in seconds
+  const [countdown, setCountdown] = useState(COUNTDOWN_TIME);
+
+  React.useEffect(() => {
+  const interval = setInterval(() => {
+    setCountdown((prev) => {
+      if (prev === 1) return COUNTDOWN_TIME;
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
 
   const [markersList, setMarkersList] = useState (
     KeyLocations.map((item) => ({
@@ -27,7 +51,7 @@ export default function MapScreen() {
     }))
   );
 
-  const [userListLocations, setUserListLocations] = useState(
+  const [userListLocation, setUserListLocation] = useState(
     UserLocations.map((item) => ({
       id: item.id,
       latitude: item.location.latitude,
@@ -54,10 +78,10 @@ export default function MapScreen() {
                 <View style={styles.locationMeta}>
                   <View style={styles.metaItem}>
                     <Ionicons name="time" size={12} color="#6B7280" />
-                    <Text style={styles.metaText}>Updated Just now</Text>
+                    <Text style={styles.metaText}>Updating location in: {formatCountdown(countdown)} </Text>
                   </View>
                   <View style={styles.nearbyBadge}>
-                    <Text style={styles.nearbyText}>6 locations nearby</Text>
+                    <Text style={styles.nearbyText}>6 locations nearby</Text>{/* This could be dynamic based on actual nearby locations */}
                   </View>
                 </View>
               </View>
@@ -116,22 +140,21 @@ export default function MapScreen() {
             <MapView 
               style={styles.map} 
               initialRegion={INITIAL_REGION}
-            >
+            > 
             <Heatmap
-              points={UserLocations.map((user) => ({
+              points={userListLocation.map((user) => ({
                 latitude: user.latitude,
                 longitude: user.longitude,}
               ))}
               radius={40}
               gradient={{
-                colors:["red", "orange", "yellow"],
+                colors:["green", "orange", "red"],
                 startPoints: [0.2, 0.5, 0.8],
-                colorMapSize: 256,
+                colorMapSize: 100,
               }}
             >
               
               </Heatmap>                   
-
               {
                 markersList.map((marker) =>{
                   return(
@@ -146,6 +169,13 @@ export default function MapScreen() {
                   )
                 })
               } 
+              <Marker
+                coordinate={{
+                  latitude: latitude || INITIAL_REGION.latitude,
+                  longitude: longitude || INITIAL_REGION.longitude,
+                }}
+                title="You are here"
+                />
               
             </MapView>
                      

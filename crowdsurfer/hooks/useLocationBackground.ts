@@ -1,25 +1,39 @@
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+import getLocalTimeString from '@/hooks/getLocalTimeString';
+import prependUserLocation from '@/hooks/prependUserLocation';
+
+
 
 const LOCATION_TASK_NAME = 'background-location-task';
-const BACKGROUND_LOCATION_INTERVAL = 5 * 1000; // 5 minutes in milliseconds
+const BACKGROUND_LOCATION_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+  const localTime = getLocalTimeString();
   if (error) {
     console.error('Background location error:', error);
     return;
   }
   if (data) {
     const { locations } = data as any;
-    // You can save locations to state, send to server, etc.
-    console.log('Received new locations in background:', locations);
+    if (locations && locations.length > 0) {
+      const loc = locations[0];
+      await prependUserLocation({//sends the data to a json file or creates a new one if it doesn't exist, this will eventually be replaced with a database
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        timestamp: getLocalTimeString(),//format may need a change in the future
+      });
+    }
   }
 });
+
+
 
 const useLocationBackground = () => {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
+
 
   useEffect(() => {
     (async () => {
@@ -59,8 +73,15 @@ const useLocationBackground = () => {
       if (last) setLocation(last);
     })();
   }, []);
+  const latitude = location?.coords.latitude ?? null;
+  const longitude = location?.coords.longitude ?? null;
+  
 
-  return { location, errorMsg };
+  return { latitude, longitude, errorMsg };
+  
+  
 };
+
+
 
 export default useLocationBackground;
