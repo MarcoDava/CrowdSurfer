@@ -7,7 +7,7 @@ import prependUserLocation from '@/hooks/prependUserLocation';
 
 
 const LOCATION_TASK_NAME = 'background-location-task';
-const BACKGROUND_LOCATION_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const BACKGROUND_LOCATION_INTERVAL = 300000; // 5 minutes in milliseconds
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
   const localTime = getLocalTimeString();
@@ -81,7 +81,5 @@ const useLocationBackground = () => {
   
   
 };
-
-
 
 export default useLocationBackground;

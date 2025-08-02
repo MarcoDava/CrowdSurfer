@@ -48,7 +48,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
 
   const handleTabPress = (route: string) => {
-    router.push(route);
+    router.push(route as any); // Potential Fix here
   };
 
   return (
@@ -65,7 +65,7 @@ export default function BottomNavigation() {
                 key={tab.name}
                 style={[
                   styles.tabButton,
-                  isActive && styles.activeTabButton,
+                  
                 ]}
                 onPress={() => handleTabPress(tab.route)}
                 activeOpacity={0.7}
@@ -105,75 +105,59 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    borderTopWidth: 0.5,
+    borderTopColor: '#E5E7EB', // Tailwind slate-200
+    backgroundColor: '#FFFFFFF0',
+    paddingBottom: 8,
   },
   navigationGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   navigationContent: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    maxWidth: 400,
-    alignSelf: 'center',
     width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
   },
   tabButton: {
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    shadowColor: '#A3B1C6',
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  activeTabButton: {
-    shadowColor: '#A3B1C6',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
   activeTabGradient: {
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -2, height: -2 },
-    shadowOpacity: 0.9,
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 3,
   },
   inactiveTab: {
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#A3B1C6',
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+    marginTop: 2,
   },
   inactiveTabText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#9CA3AF',
+    marginTop: 2,
   },
-}); 
+});

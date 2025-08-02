@@ -9,6 +9,7 @@ import UserLocations from '@/data/UserLocations.json';
 import userInformation from '@/data/UserInformation.json';
 
 
+// Initial McMaster Region
 const INITIAL_REGION = {
   latitude: 43.2628,
   longitude: -79.9177,
@@ -22,13 +23,10 @@ const formatCountdown = (seconds: number) => {
   return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
-
-
-
 export default function MapScreen() { 
   const { latitude, longitude , errorMsg } = useLocationBackground(); 
 
-  const COUNTDOWN_TIME = 5 * 60; // 5 minutes in seconds
+  const COUNTDOWN_TIME = 300000; // 5 minutes in seconds
   const [countdown, setCountdown] = useState(COUNTDOWN_TIME);
 
   React.useEffect(() => {
@@ -41,6 +39,7 @@ export default function MapScreen() {
 
   return () => clearInterval(interval);
 }, []);
+
 
   const [markersList, setMarkersList] = useState (
     KeyLocations.map((item) => ({
@@ -108,7 +107,7 @@ export default function MapScreen() {
               </View>
             </LinearGradient>
           </View>
-
+          
           <View style={styles.statusCard}>
             <LinearGradient
               colors={['#FED7D7', '#FECACA']}
