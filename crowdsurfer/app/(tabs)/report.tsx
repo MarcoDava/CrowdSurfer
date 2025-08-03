@@ -70,6 +70,25 @@ export default function ReportScreen() {
     location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     location.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Submission for Report
+  const handleSubmitReport = () => {
+    if (!selectedLocation || !selectedCrowdLevel) return;
+
+    const reportData = {
+      locationId: selectedLocation,
+      crowdLevel: selectedCrowdLevel,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log("Submitting report:", reportData);
+    alert("Crowd level reported successfully!");
+
+    // Optionally reset the form
+    setSelectedLocation(null);
+    setSelectedCrowdLevel(null);
+    setSearchQuery('');
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -155,7 +174,7 @@ export default function ReportScreen() {
                   onPress={() => setSelectedCrowdLevel(level.id)}
                 >
                   <LinearGradient
-                    colors={level.colors}
+                    colors={level.colors as [string, string]} // Still needs to fixed
                     style={styles.crowdLevelGradient}
                   >
                     <View style={styles.crowdLevelContent}>
@@ -178,7 +197,7 @@ export default function ReportScreen() {
 
         {/* Submit Button */}
         {selectedLocation && selectedCrowdLevel && (
-          <TouchableOpacity style={styles.submitButton}>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmitReport}>
             <LinearGradient
               colors={['#EA580C', '#DC2626']}
               style={styles.submitButtonGradient}
