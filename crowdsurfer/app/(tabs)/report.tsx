@@ -1,9 +1,9 @@
-import { API_URL } from '@env';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios'; // Import axios for making API calls
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
 
 const crowdLevels = [
   {
@@ -74,14 +74,19 @@ export default function ReportScreen() {
     location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     location.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
+
   // Submission for Report
+  // Will need to be addressed using Django in the future for security
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
   const handleSubmitReport = async () => {
     if (!selectedLocation || !selectedCrowdLevel) {
       Alert.alert("Missing Information", "Please select both a location and a crowd level.");
       return;
     }
-
+  
+    
+  
     const reportData = {
       location_Id: selectedLocation,
       crowd_Level: selectedCrowdLevel,
@@ -92,7 +97,7 @@ export default function ReportScreen() {
 
     try {
       // Replace this URL with your actual API endpoint
-      const response = await axios.post(`${API_URL}`, reportData);
+      const response = await axios.post(`${apiUrl}`, reportData);
 
       if (response.status === 201) {
         Alert.alert("Success", "Crowd level reported successfully!");
