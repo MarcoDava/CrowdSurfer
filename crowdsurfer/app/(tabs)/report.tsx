@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { API_URL } from '@env';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios'; // Import axios for making API calls
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const crowdLevels = [
   {
@@ -61,6 +63,8 @@ const mockLocations = [
   },
 ];
 
+
+
 export default function ReportScreen() {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedCrowdLevel, setSelectedCrowdLevel] = useState<string | null>(null);
@@ -72,22 +76,40 @@ export default function ReportScreen() {
   );
   
   // Submission for Report
-  const handleSubmitReport = () => {
-    if (!selectedLocation || !selectedCrowdLevel) return;
+  const handleSubmitReport = async () => {
+    if (!selectedLocation || !selectedCrowdLevel) {
+      Alert.alert("Missing Information", "Please select both a location and a crowd level.");
+      return;
+    }
 
     const reportData = {
-      locationId: selectedLocation,
-      crowdLevel: selectedCrowdLevel,
+      location_Id: selectedLocation,
+      crowd_Level: selectedCrowdLevel,
       timestamp: new Date().toISOString(),
     };
 
     console.log("Submitting report:", reportData);
-    alert("Crowd level reported successfully!");
 
-    // Optionally reset the form
-    setSelectedLocation(null);
-    setSelectedCrowdLevel(null);
-    setSearchQuery('');
+    try {
+      // Replace this URL with your actual API endpoint
+      const response = await axios.post(`${API_URL}`, reportData);
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Crowd level reported successfully!");
+        // Optionally reset the form on success
+        setSelectedLocation(null);
+        setSelectedCrowdLevel(null);
+        setSearchQuery('');
+      } else {
+        // Handle unexpected status codes from the server
+        Alert.alert("Error", "Something went wrong while submitting the report. Please try again.");
+      }
+
+    } catch (error) {
+      // Catch network errors, server errors, etc.
+      console.error("Failed to submit report:", error);
+      Alert.alert("Error", "Could not connect to the server. Please check your internet connection.");
+    }
   };
 
   return (

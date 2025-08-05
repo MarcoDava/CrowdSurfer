@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
-import Header from '@/components/Header';
 import BottomNavigation from '@/components/BottomNavigation';
+import Header from '@/components/Header';
+import { Stack } from 'expo-router';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export default function TabLayout() {
   return (

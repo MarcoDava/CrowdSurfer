@@ -1,12 +1,11 @@
-import React, {useState} from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import useLocationBackground from '@/hooks/useLocationBackground';
-import MapView, { Heatmap, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import KeyLocations from '@/data/KeyLocations.json'; 
+import KeyLocations from '@/data/KeyLocations.json';
 import UserLocations from '@/data/UserLocations.json';
-import userInformation from '@/data/UserInformation.json';
+import useLocationBackground from '@/hooks/useLocationBackground';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Heatmap, Marker } from 'react-native-maps';
 
 
 // Initial McMaster Region
