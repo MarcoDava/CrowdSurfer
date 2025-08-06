@@ -1,9 +1,9 @@
+import { useActivity } from '@/context/ActivityContext';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios'; // Import axios for making API calls
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
 
 const crowdLevels = [
   {
@@ -75,22 +75,22 @@ export default function ReportScreen() {
     location.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
   // Submission for Report
-  // Will need to be addressed using Django in the future for security
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL; // Will need to be addressed using Django in the future for security
+  const { addActivity } = useActivity();
+
   const handleSubmitReport = async () => {
     if (!selectedLocation || !selectedCrowdLevel) {
       Alert.alert("Missing Information", "Please select both a location and a crowd level.");
       return;
     }
   
-    
+    const timestamp = new Date().toISOString();
   
     const reportData = {
       location_Id: selectedLocation,
       crowd_Level: selectedCrowdLevel,
-      timestamp: new Date().toISOString(),
+      timestamp,
     };
 
     console.log("Submitting report:", reportData);
@@ -101,10 +101,21 @@ export default function ReportScreen() {
 
       if (response.status === 201) {
         Alert.alert("Success", "Crowd level reported successfully!");
-        // Optionally reset the form on success
+
+        addActivity({
+          locationId: reportData.location_Id,
+          // locationName,
+          crowdLevel: reportData.crowd_Level,
+          timestamp,
+        });
+        
+        
+        // Resets the form on success
         setSelectedLocation(null);
         setSelectedCrowdLevel(null);
         setSearchQuery('');
+
+
       } else {
         // Handle unexpected status codes from the server
         Alert.alert("Error", "Something went wrong while submitting the report. Please try again.");

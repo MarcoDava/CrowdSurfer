@@ -1,23 +1,26 @@
 import BottomNavigation from '@/components/BottomNavigation';
 import Header from '@/components/Header';
+import { ActivityProvider } from '@/context/ActivityContext';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 export default function TabLayout() {
   return (
-    <View style={styles.container}>
-      <Header />
-      <View style={styles.content}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="list" />
-          <Stack.Screen name="report" />
-          <Stack.Screen name="stats" />
-        </Stack>
+    <ActivityProvider>
+      <View style={styles.container}>
+        <Header />
+        <View style={styles.content}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="list" />
+            <Stack.Screen name="report" />
+            <Stack.Screen name="stats" />
+          </Stack>
+        </View>
+        <BottomNavigation />
       </View>
-      <BottomNavigation />
-    </View>
+    </ActivityProvider>
   );
 }
 

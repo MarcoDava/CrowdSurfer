@@ -170,7 +170,7 @@ export default function ListScreen() {
             return (
               <View key={location.id} style={styles.locationCard}>
                 <LinearGradient
-                  colors={colors.bg}
+                  colors={['#DCFCE7', '#BBF7D0']}
                   style={styles.locationCardGradient}
                 >
                   <View style={styles.locationCardContent}>
@@ -214,6 +214,7 @@ export default function ListScreen() {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

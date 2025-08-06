@@ -1,9 +1,12 @@
+import LiveActivityCard from '@/components/LiveActivityCard';
+import { useActivity } from '@/context/ActivityContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function StatsScreen() {
+  const { activities } = useActivity();
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
@@ -118,38 +121,31 @@ export default function StatsScreen() {
             </LinearGradient>
           </View>
         </View>
-
+        
         {/* Recent Activity */}
         <View style={styles.recentActivity}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={styles.activityList}>
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityText}>Library Level 2 reported as "Not Busy"</Text>
-                <Text style={styles.activityTime}>2 hours ago</Text>
-              </View>
-            </View>
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityText}>Engineering Lab reported as "Busy"</Text>
-                <Text style={styles.activityTime}>3 hours ago</Text>
-              </View>
-            </View>
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityText}>Student Union reported as "Quiet"</Text>
-                <Text style={styles.activityTime}>4 hours ago</Text>
-              </View>
-            </View>
+            {activities.length === 0 && (
+              <Text>No recent activity reported yet.</Text>
+            )}
+            {activities.map((activity) => (
+              <LiveActivityCard
+                key={activity.id}
+                locationId={activity.locationId}
+                crowdLevel={activity.crowdLevel}
+                timestamp={activity.timestamp}
+              />
+            ))}            
           </View>
         </View>
       </View>
     </ScrollView>
   );
 }
+
+// After successfully sending, fetch from report.tsx and create an item in the stats live activity section
+// Will show the library based on id, report status, and acutal time or 5 minutes ago type thing
 
 const styles = StyleSheet.create({
   container: {
