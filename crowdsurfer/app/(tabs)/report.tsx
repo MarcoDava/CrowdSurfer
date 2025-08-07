@@ -77,7 +77,7 @@ export default function ReportScreen() {
         <ReportHeader />
 
         {/* Select Location Section */}
-        <View style={styles.locationSection}>
+        
           <Text style={styles.sectionTitle}>Select Location</Text>
           
           <LocationSearch value={searchQuery} onChange={setSearchQuery} />
@@ -87,7 +87,7 @@ export default function ReportScreen() {
             selectedLocation={selectedLocation}
             onSelect={setSelectedLocation}
           />
-        </View>
+        
 
         {/* Crowd Level Selection */}
         {selectedLocation && (
