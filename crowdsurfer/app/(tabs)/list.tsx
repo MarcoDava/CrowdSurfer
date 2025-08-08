@@ -3,6 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+// import KeyLocations from '@/data/KeyLocations.json';
+// Going to remove this soon
 const mockLocations = [
   {
     id: '1',

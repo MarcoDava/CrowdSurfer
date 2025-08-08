@@ -1,12 +1,9 @@
+import KeyLocations from '@/data/KeyLocations.json';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
+
 // Change
-const mockLocations = [
-  { id: '1', name: 'Main Library - Level 2' },
-  { id: '2', name: 'Engineering Computer Lab' },
-  { id: '3', name: 'Campus Coffee & Study' },
-  { id: '4', name: 'Student Union Study Hall' },
-];
+
 
 type Props = {
   locationId: string;
@@ -17,16 +14,27 @@ type Props = {
 const getDotColor = (crowdLevel: string) => {
   switch (crowdLevel.toLowerCase()) {
     case 'quiet':
-      return '#16A34A';
+      return '#22c55e';  
     case 'not_busy':
-      return '#FACC15';
+      return '#eab308';  
     case 'busy':
-      return '#ef9f44ff';
+      return '#f97316';  
     case 'very_busy':
-      return '#EF4444';
+      return '#dc2626';  
     default:
-      return '#9CA3AF';
+      return '#6b7280';  
   }
+};
+
+const crowdLevelDisplayMap: Record<string, string> = {
+  quiet: 'Quiet',
+  not_busy: 'Not Busy',
+  busy: 'Busy',
+  very_busy: 'Very Busy',
+};
+
+const getDisplayCrowdLevel = (level: string) => {
+  return crowdLevelDisplayMap[level.toLowerCase()] || 'Unknown';
 };
 
 export default function LiveActivityCard({ locationId, crowdLevel, timestamp }: Props) {
@@ -40,14 +48,13 @@ export default function LiveActivityCard({ locationId, crowdLevel, timestamp }: 
     }).start();
   }, []);
 
-  const locationName = mockLocations.find((loc) => loc.id === locationId)?.name || 'Unknown Location';
-
+  const locationName = KeyLocations.find((loc) => loc.id === Number(locationId))?.title || 'Unknown Location';
   return (
     <Animated.View style={[styles.activityItem, { opacity: fadeAnim }]}>
       <View style={[styles.activityDot, { backgroundColor: getDotColor(crowdLevel) }]} />
       <View style={styles.activityInfo}>
         <Text style={styles.activityText}>
-          {locationName} reported as "{crowdLevel}"
+          {locationName} reported as "{getDisplayCrowdLevel(crowdLevel)}"
         </Text>
         <Text style={styles.activityTime}>
           {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -56,8 +63,6 @@ export default function LiveActivityCard({ locationId, crowdLevel, timestamp }: 
     </Animated.View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   activityItem: {
