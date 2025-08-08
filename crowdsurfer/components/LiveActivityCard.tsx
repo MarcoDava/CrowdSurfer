@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-
+// Change
 const mockLocations = [
   { id: '1', name: 'Main Library - Level 2' },
   { id: '2', name: 'Engineering Computer Lab' },

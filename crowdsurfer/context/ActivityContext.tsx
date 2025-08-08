@@ -1,4 +1,3 @@
-// context/ActivityContext.tsx
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 export type Activity = {
