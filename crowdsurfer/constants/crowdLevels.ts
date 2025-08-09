@@ -28,7 +28,7 @@ export const crowdLevels: CrowdLevel[] = [
     id: 'busy',
     title: 'Busy',
     description: 'Getting crowded, limited seating',
-    colors: ['#FED7D7', '#FECACA'] as [string, string],
+    colors: ['#FAD4BF', '#F6A86B'] as [string, string],
     textColor: '#EA580C',
     dotColor: '#F97316',
   },
