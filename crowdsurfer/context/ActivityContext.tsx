@@ -1,3 +1,6 @@
+{/* Report Crowd Level Section 
+    This is the purpose of Activity Context.tsx  
+  */}
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 export type Activity = {
@@ -13,6 +16,7 @@ type ActivityContextType = {
 };
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
+
 
 export const ActivityProvider = ({ children }: { children: ReactNode }) => {
   const [activities, setActivities] = useState<Activity[]>([]);

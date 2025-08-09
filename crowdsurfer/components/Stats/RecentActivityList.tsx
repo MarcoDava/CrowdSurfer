@@ -18,17 +18,17 @@ export default function RecentActivityList({ activities }: RecentActivityListPro
     <View style={styles.recentActivity}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
         <View style={styles.activityList}>
-            {activities.length === 0 && (
-                <Text>No recent activity reported yet.</Text>
-            )}
-            {activities.map((activity) => (
-                <LiveActivityCard
-                    key={activity.id}
-                    locationId={activity.locationId}
-                    crowdLevel={activity.crowdLevel}
-                    timestamp={activity.timestamp}
-                />
-            ))}            
+          {activities.length === 0 && (
+              <Text>No recent activity reported yet.</Text>
+          )}
+          {activities.map((activity) => (
+              <LiveActivityCard
+                  key={activity.id}
+                  locationId={activity.locationId}
+                  crowdLevel={activity.crowdLevel}
+                  timestamp={activity.timestamp}
+              />
+          ))}            
         </View>
     </View>
     );

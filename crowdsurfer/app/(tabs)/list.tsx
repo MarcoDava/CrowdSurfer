@@ -1,80 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// import KeyLocations from '@/data/KeyLocations.json';
-// Going to remove this soon
-const mockLocations = [
-  {
-    id: '1',
-    name: 'Main Library - Level 2',
-    address: 'Main Library • Floor 2',
-    occupancy: 30,
-    crowdLevel: 'not_busy',
-    distance: '581.2km',
-    lastUpdated: '-236 mins ago',
-  },
-  {
-    id: '2',
-    name: 'Engineering Computer Lab',
-    address: 'Engineering Hall • Floor 1',
-    occupancy: 88,
-    crowdLevel: 'busy',
-    distance: '581.2km',
-    lastUpdated: '-237 mins ago',
-  },
-  {
-    id: '3',
-    name: 'Campus Coffee & Study',
-    address: 'Student Center • Floor 1',
-    occupancy: 92,
-    crowdLevel: 'very_busy',
-    distance: '581.2km',
-    lastUpdated: '-237 mins ago',
-  },
-  {
-    id: '4',
-    name: 'Student Union Study Hall',
-    address: 'Student Union • Floor 3',
-    occupancy: 19,
-    crowdLevel: 'quiet',
-    distance: '581.2km',
-    lastUpdated: '-237 mins ago',
-  },
-];
+import { crowdLevelColorMap, crowdLevelTitleMap } from '@/constants/crowdLevels';
+import KeyLocations from '@/data/KeyLocations.json';
 
-const getCrowdLevelColors = (level: string) => {
-  switch (level) {
-    case 'quiet':
-      return { bg: ['#DCFCE7', '#BBF7D0'], text: '#16A34A', dot: '#16A34A' };
-    case 'not_busy':
-      return { bg: ['#FEF3C7', '#FDE68A'], text: '#D97706', dot: '#F59E0B' };
-    case 'busy':
-      return { bg: ['#FED7D7', '#FECACA'], text: '#EA580C', dot: '#F97316' };
-    case 'very_busy':
-      return { bg: ['#FEE2E2', '#FECACA'], text: '#DC2626', dot: '#EF4444' };
-    default:
-      return { bg: ['#F3F4F6', '#E5E7EB'], text: '#6B7280', dot: '#9CA3AF' };
-  }
-};
-
-const getCrowdLevelText = (level: string) => {
-  switch (level) {
-    case 'quiet':
-      return 'Quiet';
-    case 'not_busy':
-      return 'Not Busy';
-    case 'busy':
-      return 'Busy';
-    case 'very_busy':
-      return 'Very Busy';
-    default:
-      return 'Unknown';
-  }
+// For keylocations informations
+const enrichLocations = (locations: typeof KeyLocations) => {
+  return locations.map((loc) => ({
+    id: loc.id.toString(),
+    name: loc.title,
+    address: 'Unknown address', // placeholder, update as you want
+    occupancy: Math.floor(Math.random() * 100), // mock occupancy 0-99%
+    crowdLevel: ['quiet', 'not_busy', 'busy', 'very_busy'][Math.floor(Math.random() * 4)], // random crowd level
+    distance: 'unknown', // or calculate based on location
+    lastUpdated: '-5 mins ago', // placeholder
+  }));
 };
 
 export default function ListScreen() {
+  const router = useRouter();
+  const locations = enrichLocations(KeyLocations);
+  
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
@@ -107,52 +56,41 @@ export default function ListScreen() {
         {/* Crowd Level Filters */}
         <View style={styles.filtersContainer}>
           <View style={styles.filterCard}>
-            <LinearGradient
-              colors={['#DCFCE7', '#BBF7D0']}
-              style={styles.filterGradient}
-            >
+            {/* Generate these filter cards dynamically from crowdLevels  */}
+            <LinearGradient colors={crowdLevelColorMap.quiet.bg} style={styles.filterGradient}>
               <View style={styles.filterContent}>
-                <View style={styles.greenDot} />
-                <Text style={styles.filterTitle}>Quiet</Text>
+                <View style={[styles.crowdDot, { backgroundColor: crowdLevelColorMap.quiet.dot }]} /> 
+                <Text style={styles.filterTitle}>{crowdLevelTitleMap.quiet}</Text>
                 <Text style={styles.filterCount}>2</Text>
               </View>
             </LinearGradient>
           </View>
 
           <View style={styles.filterCard}>
-            <LinearGradient
-              colors={['#FEF3C7', '#FDE68A']}
-              style={styles.filterGradient}
-            >
+            <LinearGradient colors={crowdLevelColorMap.not_busy.bg} style={styles.filterGradient}>
               <View style={styles.filterContent}>
-                <View style={styles.yellowDot} />
-                <Text style={styles.filterTitle}>Moderate</Text>
+                <View style={[styles.crowdDot, { backgroundColor: crowdLevelColorMap.not_busy.dot }]} />
+                <Text style={styles.filterTitle}>{crowdLevelTitleMap.not_busy}</Text>
                 <Text style={styles.filterCount}>1</Text>
               </View>
             </LinearGradient>
           </View>
 
           <View style={styles.filterCard}>
-            <LinearGradient
-              colors={['#FED7D7', '#FECACA']}
-              style={styles.filterGradient}
-            >
+            <LinearGradient colors={crowdLevelColorMap.busy.bg} style={styles.filterGradient}>
               <View style={styles.filterContent}>
-                <View style={styles.orangeDot} />
-                <Text style={styles.filterTitle}>Busy</Text>
+                <View style={[styles.crowdDot, { backgroundColor: crowdLevelColorMap.busy.dot }]} />
+                <Text style={styles.filterTitle}>{crowdLevelTitleMap.busy}</Text>
                 <Text style={styles.filterCount}>2</Text>
               </View>
             </LinearGradient>
           </View>
 
           <View style={styles.filterCard}>
-            <LinearGradient
-              colors={['#FEE2E2', '#FECACA']}
-              style={styles.filterGradient}
-            >
+            <LinearGradient colors={crowdLevelColorMap.very_busy.bg} style={styles.filterGradient}>
               <View style={styles.filterContent}>
-                <View style={styles.redDot} />
-                <Text style={styles.filterTitle}>Very Busy</Text>
+                <View style={[styles.crowdDot, { backgroundColor: crowdLevelColorMap.very_busy.dot }]} />
+                <Text style={styles.filterTitle}>{crowdLevelTitleMap.very_busy}</Text>
                 <Text style={styles.filterCount}>1</Text>
               </View>
             </LinearGradient>
@@ -167,14 +105,21 @@ export default function ListScreen() {
 
         {/* Location List */}
         <View style={styles.locationList}>
-          {mockLocations.map((location) => {
-            const colors = getCrowdLevelColors(location.crowdLevel);
+          {locations.map((location) => {
+            const colors = crowdLevelColorMap[location.crowdLevel] ?? {
+              bg: ['#F3F4F6', '#E5E7EB'],
+              text: '#6B7280',
+              dot: '#9CA3AF',
+            };
+            const title = crowdLevelTitleMap[location.crowdLevel] ?? 'Unknown';            
+
             return (
-              <View key={location.id} style={styles.locationCard}>
-                <LinearGradient
-                  colors={['#DCFCE7', '#BBF7D0']}
-                  style={styles.locationCardGradient}
-                >
+              <TouchableOpacity
+                key={location.id}
+                onPress={() => router.push(`./locationStats/${location.id}`)}
+                style={styles.locationCard} // move styles here from View if needed
+              >
+               <LinearGradient colors={colors.bg} style={styles.locationCardGradient}>
                   <View style={styles.locationCardContent}>
                     <View style={styles.locationIcon}>
                       <View style={[styles.crowdDot, { backgroundColor: colors.dot }]} />
@@ -198,12 +143,12 @@ export default function ListScreen() {
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: colors.bg[0] }]}>
                       <Text style={[styles.statusText, { color: colors.text }]}>
-                        {getCrowdLevelText(location.crowdLevel)}
+                        {title}
                       </Text>
                     </View>
                   </View>
                 </LinearGradient>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

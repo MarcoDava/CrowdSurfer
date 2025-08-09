@@ -6,8 +6,8 @@ export default function WeeklyActivity() {
   return (       
     <View style={styles.activitySection}>
         <View style={styles.activityHeader}>
-        <Ionicons name="bar-chart" size={16} color="#2563EB" />
-        <Text style={styles.activityTitle}>Weekly Activity</Text>
+          <Ionicons name="bar-chart" size={16} color="#2563EB" />
+          <Text style={styles.activityTitle}>Weekly Activity</Text>
         </View>
         
         <View style={styles.chartContainer}>
@@ -27,6 +27,7 @@ export default function WeeklyActivity() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   activitySection: {
