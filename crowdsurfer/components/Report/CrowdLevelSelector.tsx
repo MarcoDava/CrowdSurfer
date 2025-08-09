@@ -1,54 +1,67 @@
+import {
+  crowdLevelColorMap,
+  crowdLevels,
+  crowdLevelTitleMap,
+} from '@/constants/crowdLevels';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-type CrowdLevel = {
-  id: string;
-  title: string;
-  description: string;
-  colors: [string, string];
-  dotColor: string;
-  textColor: string;
-};
-
-type Props = {
-  crowdLevels: CrowdLevel[];
+interface CrowdLevelSelectorProps {
   selectedLevel: string | null;
   onSelect: (id: string) => void;
-};
+}
 
-export default function CrowdLevelSelector({ crowdLevels, selectedLevel, onSelect }: Props) {
+
+
+export default function CrowdLevelSelector({
+  selectedLevel,
+  onSelect,
+}: CrowdLevelSelectorProps) {
   return (
-<View style={styles.crowdLevelSection}>
-    <Text style={styles.sectionTitle}>How crowded is it?</Text>
-    <View style={styles.crowdLevelList}>
-        {crowdLevels.map((level) => (
-        <TouchableOpacity
-          key={level.id}
-          style={[styles.crowdLevelCard, selectedLevel === level.id && styles.selectedCrowdLevelCard]}
-          onPress={() => onSelect(level.id)}
-        >
-            <LinearGradient
-            colors={level.colors} // Still needs to fixed
-            style={styles.crowdLevelGradient}
+    <View style={styles.crowdLevelSection}>
+      <Text style={styles.sectionTitle}>How crowded is it?</Text>
+      <View style={styles.crowdLevelList}>
+        {crowdLevels.map((level) => {
+          const colors = crowdLevelColorMap[level.id].bg;
+          const textColor = crowdLevelColorMap[level.id].text;
+          const dotColor = crowdLevelColorMap[level.id].dot;
+
+          return (
+            <TouchableOpacity
+              key={level.id}
+              style={[
+                styles.crowdLevelCard,
+                selectedLevel === level.id && styles.selectedCrowdLevelCard,
+              ]}
+              onPress={() => onSelect(level.id)}
             >
-            <View style={styles.crowdLevelContent}>
-                <View style={[styles.crowdLevelDot, { backgroundColor: level.dotColor }]} />
-                <View style={styles.crowdLevelInfo}>
-                <Text style={[styles.crowdLevelTitle, { color: level.textColor }]}>
-                    {level.title}
-                </Text>
-                <Text style={[styles.crowdLevelDescription, { color: level.textColor }]}>
-                    {level.description}
-                </Text>
+              <LinearGradient colors={colors} style={styles.crowdLevelGradient}>
+                <View style={styles.crowdLevelContent}>
+                  <View
+                    style={[styles.crowdLevelDot, { backgroundColor: dotColor }]}
+                  />
+                  <View style={styles.crowdLevelInfo}>
+                    <Text style={[styles.crowdLevelTitle, { color: textColor }]}>
+                      {crowdLevelTitleMap[level.id]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.crowdLevelDescription,
+                        { color: textColor },
+                      ]}
+                    >
+                      {level.description}
+                    </Text>
+                  </View>
                 </View>
-            </View>
-            </LinearGradient>
-        </TouchableOpacity>
-        ))}
+              </LinearGradient>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
-    </View>
- );
+  );
 }
 
 const styles = StyleSheet.create({

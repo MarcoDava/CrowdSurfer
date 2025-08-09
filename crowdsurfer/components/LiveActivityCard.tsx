@@ -1,3 +1,4 @@
+import { crowdLevelColorMap, crowdLevelTitleMap } from '@/constants/crowdLevels';
 import KeyLocations from '@/data/KeyLocations.json';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
@@ -11,32 +12,6 @@ type Props = {
   timestamp: string;
 };   
 
-const getDotColor = (crowdLevel: string) => {
-  switch (crowdLevel.toLowerCase()) {
-    case 'quiet':
-      return '#22c55e';  
-    case 'not_busy':
-      return '#eab308';  
-    case 'busy':
-      return '#f97316';  
-    case 'very_busy':
-      return '#dc2626';  
-    default:
-      return '#6b7280';  
-  }
-};
-
-const crowdLevelDisplayMap: Record<string, string> = {
-  quiet: 'Quiet',
-  not_busy: 'Not Busy',
-  busy: 'Busy',
-  very_busy: 'Very Busy',
-};
-
-const getDisplayCrowdLevel = (level: string) => {
-  return crowdLevelDisplayMap[level.toLowerCase()] || 'Unknown';
-};
-
 export default function LiveActivityCard({ locationId, crowdLevel, timestamp }: Props) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -49,12 +24,17 @@ export default function LiveActivityCard({ locationId, crowdLevel, timestamp }: 
   }, []);
 
   const locationName = KeyLocations.find((loc) => loc.id === Number(locationId))?.title || 'Unknown Location';
+  
+  const normalizedLevel = crowdLevel.toLowerCase();
+  const dotColor = crowdLevelColorMap[normalizedLevel]?.dot ?? '#6B7280'; // fallback color
+  const displayLevel = crowdLevelTitleMap[normalizedLevel] ?? 'Unknown';
+
   return (
     <Animated.View style={[styles.activityItem, { opacity: fadeAnim }]}>
-      <View style={[styles.activityDot, { backgroundColor: getDotColor(crowdLevel) }]} />
+      <View style={[styles.activityDot, { backgroundColor: dotColor}]} />
       <View style={styles.activityInfo}>
         <Text style={styles.activityText}>
-          {locationName} reported as "{getDisplayCrowdLevel(crowdLevel)}"
+          {locationName} reported as "{displayLevel}"
         </Text>
         <Text style={styles.activityTime}>
           {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

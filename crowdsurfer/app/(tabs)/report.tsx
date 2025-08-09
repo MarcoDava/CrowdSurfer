@@ -8,7 +8,6 @@ import CrowdLevelSelector from '@/components/Report/CrowdLevelSelector';
 import LocationList from '@/components/Report/LocationList';
 import LocationSearch from '@/components/Report/LocationSearch';
 import ReportHeader from '@/components/Report/ReportHeader';
-import { crowdLevels } from '@/constants/crowdLevels';
 import { useActivity } from '@/context/ActivityContext';
 import { useFilteredLocations } from '@/hooks/useFilteredLocations';
 
@@ -88,7 +87,6 @@ export default function ReportScreen() {
         {/* Crowd Level Selection */}
         {selectedLocation && (
           <CrowdLevelSelector
-            crowdLevels={crowdLevels}
             selectedLevel={selectedCrowdLevel}
             onSelect={setSelectedCrowdLevel}
           />
