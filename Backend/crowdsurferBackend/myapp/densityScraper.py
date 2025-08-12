@@ -5,6 +5,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.by import By
 import time
 
+# This function is just to test different browsers
 def get_driver():
     """Try to get Chrome, then Edge, then Firefox WebDriver."""
     # Try Chrome
@@ -43,12 +44,13 @@ def get_driver():
 
     raise RuntimeError("No supported WebDriver found. Please install ChromeDriver, EdgeDriver, or GeckoDriver.")
 
-def scrape_occupancy():
+# This is the actual scraper
+def scrape_php_occupancy():
     driver = get_driver()
     try:
-        url = "https://library.mcmaster.ca/occupancy-live-status-libraries"
+        url = "https://library.mcmaster.ca/php/occupancy-spaces.php"
         driver.get(url)
-        time.sleep(5)  # Wait for JS to load occupancy data
+        time.sleep(2)  
 
         cards = driver.find_elements(By.CSS_SELECTOR, ".card.card-shadow")
 
@@ -63,7 +65,7 @@ def scrape_occupancy():
             section_headers = card.find_elements(By.TAG_NAME, "h4")
             for section_header in section_headers:
                 section_name = section_header.text
-                section_occ_tag = section_header.find_element(By.XPATH, "following-sibling::p[contains(text(), 'Occupancy at')]")
+                section_occ_tag = section_header.find_element(By.XPATH, "following-sibling::div/following-sibling::p[contains(text(), 'Occupancy at')]")
                 section_occupancy = section_occ_tag.text.replace("Occupancy at ", "")
                 sections.append({"section": section_name, "occupancy": section_occupancy})
 
@@ -73,6 +75,7 @@ def scrape_occupancy():
                 "sections": sections
             })
 
+        # print nicely
         for lib in data:
             print(f"{lib['library']} - {lib['overall_occupancy']}")
             for sec in lib["sections"]:
@@ -83,4 +86,4 @@ def scrape_occupancy():
         driver.quit()
 
 if __name__ == "__main__":
-    scrape_occupancy()
+    scrape_php_occupancy()
