@@ -7,6 +7,8 @@
 
 # The code below will be for the webscraper, in the future it will be moved to a different file for OOP
 
+# I think we can delete the code
+"""
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -20,4 +22,4 @@ location_occupancies = soup.findAll("p",attrs = {"class":"mb-2"})#find the occup
 
 for location_name,location_occupancy in zip(location_names,location_occupancies):
     print(location_name.text+" has an occupancy of level of: "+location_occupancy.text+"%")
-                 
+"""
