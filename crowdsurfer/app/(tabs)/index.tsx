@@ -4,10 +4,11 @@ import useLocationBackground from '@/hooks/useLocationBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
+import Geocoder from 'react-native-geocoding';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Heatmap, Marker } from 'react-native-maps';
 
-
+Geocoder.init("AIzaSyD78InqEVaxOaVeverkrfA9UoScmhrwVFY");
 // Initial McMaster Region
 const INITIAL_REGION = {
   latitude: 43.2628,
@@ -15,6 +16,35 @@ const INITIAL_REGION = {
   latitudeDelta: 0.05,
   longitudeDelta: 0.05,
 };
+
+const userGeocodedAddress = async (latitude: number, longitude: number) => {
+  try {
+    const json = await Geocoder.from(latitude||0, longitude||0);
+    const addressComponent = json.results[0]?.formatted_address || "Unknown location";
+    return addressComponent;
+  } catch (error) {
+    return "Unknown location";
+  }
+};
+
+const formatAddress = (address:string, location: boolean, city:boolean, postalCode:boolean, country:boolean) => {
+  address.split(',')
+  let formattedAddress = "";
+  if (location) {
+    formattedAddress += address.split(',')[0] || "";
+  }
+  if (city) {
+    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[1] || "");
+  }
+  if (country) {
+    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[3] || "");
+  }
+  if (postalCode) {
+    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[2] || "");
+  }
+  return formattedAddress;
+}
+
 
 const formatCountdown = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -25,8 +55,21 @@ const formatCountdown = (seconds: number) => {
 export default function MapScreen() { 
   const { latitude, longitude , errorMsg } = useLocationBackground(); 
 
-  const COUNTDOWN_TIME = 300000; // 5 minutes in seconds
+  const [address, setAddress] = useState("Loading location...");
+
+
+  const COUNTDOWN_TIME = 300; // 5 minutes in seconds
   const [countdown, setCountdown] = useState(COUNTDOWN_TIME);
+  
+  React.useEffect(() => {
+    if (latitude && longitude) {
+      (async () => {
+        const addr = await userGeocodedAddress(latitude, longitude);
+        setAddress(addr);
+      })();
+    }
+  }, [latitude, longitude]);
+
 
   React.useEffect(() => {
   const interval = setInterval(() => {
@@ -71,7 +114,7 @@ export default function MapScreen() {
                 <Ionicons name="paper-plane" size={24} color="#7C3AED" />
               </View>
               <View style={styles.locationInfo}>
-                <Text style={styles.locationTitle}>Your Location</Text>
+                <Text style={styles.locationTitle}>Your Location : {formatAddress(address,true,true,false,false)}</Text>
                 <Text style={styles.locationStatus}>Location found</Text>
                 <View style={styles.locationMeta}>
                   <View style={styles.metaItem}>
@@ -79,7 +122,7 @@ export default function MapScreen() {
                     <Text style={styles.metaText}>Updating location in: {formatCountdown(countdown)} </Text>
                   </View>
                   <View style={styles.nearbyBadge}>
-                    <Text style={styles.nearbyText}>6 locations nearby</Text>{/* This could be dynamic based on actual nearby locations */}
+                    <Text style={styles.nearbyText}>{Object.keys(KeyLocations).length} locations nearby</Text>{/* This could be dynamic based on actual nearby locations */}
                   </View>
                 </View>
               </View>
@@ -133,7 +176,6 @@ export default function MapScreen() {
               <Ionicons name="location" size={20} color="#2563EB" />
               <Text style={styles.mapTitle}>Campus Map</Text>
             </View>
-            <Text style={styles.mapSubtitle}>Interactive map coming soon</Text>
 
             <MapView 
               style={styles.map} 

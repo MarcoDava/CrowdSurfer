@@ -73,9 +73,8 @@ const useLocationBackground = () => {
       if (last) setLocation(last);
     })();
   }, []);
-  const latitude = location?.coords.latitude ?? null;
-  const longitude = location?.coords.longitude ?? null;
-  
+  const latitude = location?.coords.latitude??-1;
+  const longitude = location?.coords.longitude??-1; 
 
   return { latitude, longitude, errorMsg };
   
