@@ -5,6 +5,8 @@
       "latitude": 43.2628,
       "longitude": -79.9192
     },
+    "occupancy": "3%",
+    "updatedAt": "2023-10-01T12:00:00Z",
     "title": "Mills Library"
   },
   {
@@ -13,6 +15,8 @@
       "latitude": 43.2628,
       "longitude": -79.9192
     },
+    "occupancy": "3%",
+    "updatedAt": "2023-10-01T12:00:00Z",
     "title": "Thode Library"
   },
   {
@@ -21,7 +25,9 @@
       "latitude": 43.26023116192334,
       "longitude": -79.91790253376291
     },
-    "title": "Health Science Library"
+    "occupancy": "3%",
+    "updatedAt": "2023-10-01T12:00:00Z",
+    "title": "Health Sciences Library"
   },
   {
     "id": 4,
@@ -29,6 +35,8 @@
       "latitude": 43.26355215260572,
       "longitude": -79.91773528312352
     },
+    "occupancy": "3%",
+    "updatedAt": "2023-10-01T12:00:00Z",
     "title": "Student Union Study Hall"
   }
 ]

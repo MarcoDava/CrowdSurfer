@@ -14,7 +14,7 @@ import KeyLocations from '@/data/KeyLocations.json';
 
 export default function LibraryStatsScreen() {
   const { id } = useLocalSearchParams();
-  const locationId = Number(id);
+  const locationId = Array.isArray(id) ? Number(id[0]) : Number(id);
   const location = KeyLocations.find(loc => loc.id === locationId);
   
   if (!location) {

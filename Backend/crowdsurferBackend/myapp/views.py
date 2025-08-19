@@ -152,3 +152,8 @@ class ReportAPIView(APIView):
             'message': 'Invalid data',
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class updateKeyLocationsView(APIView):
+    def post(self,request):
+        

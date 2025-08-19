@@ -26,7 +26,6 @@ def save_scraper_data():
             scrapeData.objects.create(
                 location_Id=result['location_Id'],
                 occupancy=result['occupancy'],
-                data={}
             )
             print(f"Saved: {result['location_Id']} - {result['occupancy']}%")
         except Exception as e:

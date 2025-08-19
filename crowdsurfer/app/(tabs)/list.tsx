@@ -1,15 +1,16 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { crowdLevelColorMap, crowdLevelTitleMap } from '@/constants/crowdLevels';
 import KeyLocations from '@/data/KeyLocations.json';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+//import updateKeyLocations from '@/hooks/updateKeyLocations';
 
 // STEP 1: Fix API URL - Replace with your computer's IP address
 // To find your IP: Open Command Prompt/Terminal and run: ipconfig (Windows) or ifconfig (Mac/Linux)
-const API_BASE_URL = 'http://xxx.xxx.x.xx:8000/api'; //CHANGE THIS TO YOUR COMPUTER'S IP
+const API_BASE_URL = 'http://192.168.4.29:8000/api'; // ⚠️ CHANGE THIS TO YOUR COMPUTER'S IP
 
 // Types
 interface OccupancyData {
@@ -46,16 +47,22 @@ const occupancyLevelConvert = (occupancy: number) => {
 // STEP 2: Improved location mapping
 const mapLocationName = (locationId: string) => {
   const mapping: { [key: string]: string } = {
-    'Mills Memo': 'Mills Memorial Library',
+    'Mills Memo': 'Mills Library',
     'Thode Libr': 'Thode Library',
     'Health Sci': 'Health Sciences Library',
-    'Innis Libr': 'Innis Library',
-    'Mills Memorial Library': 'Mills Memorial Library',
-    'Thode Library': 'Thode Library',
     // Add more mappings based on your actual data
   };
   return mapping[locationId] || locationId;
 };
+
+const findLocationIDNumber = (location:string)=> {
+  const locationIDNumber = KeyLocations.find(loc => loc.title === mapLocationName(location));
+  return locationIDNumber ? locationIDNumber.id : -1;
+}
+
+const updateKeyLocationJson = async (locationId: string, occupancy: string, updatedAt: string) => {
+  //updateKeyLocations(findLocationIDNumber(locationId), occupancy, updatedAt);
+}
 
 // STEP 3: Calculate actual time difference for lastUpdated
 const calculateTimeAgo = (timestamp: number) => {
@@ -324,7 +331,7 @@ export default function ListScreen() {
             return (
               <TouchableOpacity
                 key={location.id}
-                onPress={() => router.push(`./locationStats/${location.id}`)}
+                onPress={() => router.push(`./locationStats/${findLocationIDNumber(location.id)}`)}
                 style={styles.locationCard}
               >
                <LinearGradient colors={colors.bg} style={styles.locationCardGradient}>
@@ -362,19 +369,20 @@ export default function ListScreen() {
         </View>
 
         {/* Debug Info (remove in production) */}
-        {__DEV__ && (
+        {/*{__DEV__ && (
           <View style={styles.debugContainer}>
             <Text style={styles.debugTitle}>Debug Info:</Text>
             <Text style={styles.debugText}>API URL: {API_BASE_URL}</Text>
             <Text style={styles.debugText}>Locations loaded: {locations.length}</Text>
             <Text style={styles.debugText}>Has error: {error ? 'Yes' : 'No'}</Text>
           </View>
-        )}
+        )}*/} 
 
         {/* Floating Action Button */}
-        <TouchableOpacity style={styles.fab}>
+        {/* <TouchableOpacity style={styles.fab}>
           <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        {/* Add back when it has functionality*/}
       </View>
     </ScrollView>
   );
