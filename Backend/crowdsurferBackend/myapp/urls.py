@@ -1,3 +1,4 @@
+# urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
@@ -5,6 +6,8 @@ from . import views
 # Create a router for DRF ViewSets
 router = DefaultRouter()
 router.register(r'scrapedata', views.ScrapeDataViewSet, basename='scrapedata')
+router.register(r'key-locations', views.KeyLocationViewSet, basename='key-locations')
+router.register(r'user-locations', views.UserLocationViewSet, basename='user-locations')
 
 # Define URL patterns
 urlpatterns = [
@@ -23,4 +26,8 @@ urlpatterns = [
     
     # Alternative report endpoint (using custom APIView)
     path('api/reports-custom/', views.ReportAPIView.as_view(), name='report_custom'),
+    
+    # Location endpoints
+    path('api/update-key-location/', views.UpdateKeyLocationsView.as_view(), name='update-key-location'),
+    path('api/save-user-location/', views.SaveUserLocationView.as_view(), name='save-user-location'),
 ]

@@ -8,12 +8,12 @@ class Report(models.Model):
     location_Id = models.CharField(max_length=10)
     crowd_Level = models.CharField(max_length=20)
 
-class updateKeyLocation(models.Model):
+class keyLocation(models.Model):
     location_Id = models.CharField(max_length=10)
     occupancy = models.CharField(max_length=20)
 
-class updateUserLocation(models.Model):
+class userLocation(models.Model):
     user_Id = models.CharField(max_length=10)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    
+

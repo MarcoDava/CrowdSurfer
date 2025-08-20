@@ -3,8 +3,8 @@ from rest_framework import generics, viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Report, scrapeData
-from .serializer import ReportSerializer, ScrapeDataSerializer  # Fixed: should be 'serializers' not 'serializer'
+from .models import Report, scrapeData, keyLocation, userLocation
+from .serializer import ReportSerializer, ScrapeDataSerializer , KeyLocationSerializer, UserLocationSerializer
 
 # Report Views
 class ReportView(generics.ListCreateAPIView):
@@ -28,6 +28,16 @@ class ScrapeDataViewSet(viewsets.ModelViewSet):
     """
     queryset = scrapeData.objects.all()
     serializer_class = ScrapeDataSerializer
+
+# KeyLocation Views
+class KeyLocationViewSet(viewsets.ModelViewSet):
+    queryset = keyLocation.objects.all()
+    serializer_class = KeyLocationSerializer
+
+# UserLocation Views
+class UserLocationViewSet(viewsets.ModelViewSet):
+    queryset = userLocation.objects.all()
+    serializer_class = UserLocationSerializer
 
 # Custom API Views for Frontend Integration
 @api_view(['GET'])
@@ -153,7 +163,50 @@ class ReportAPIView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
     
+class UpdateKeyLocationsView(APIView):
+    def post(self, request):
+        try:
+            serializer = KeyLocationSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Key location saved successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response({
+                'status': 'error',
+                'message': 'Invalid data',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class updateKeyLocationsView(APIView):
-    def post(self,request):
-        
+class SaveUserLocationView(APIView):
+    def post(self, request):
+        try:
+            serializer = UserLocationSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'User location saved successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            
+            return Response({
+                'status': 'error',
+                'message': 'Invalid location data',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
