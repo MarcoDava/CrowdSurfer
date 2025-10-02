@@ -10,7 +10,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 
 // STEP 1: Fix API URL - Replace with your computer's IP address
 // To find your IP: Open Command Prompt/Terminal and run: ipconfig (Windows) or ifconfig (Mac/Linux)
-const API_BASE_URL = 'http://192.168.4.29:8000/api'; // ⚠️ CHANGE THIS TO YOUR COMPUTER'S IP
+const API_BASE_URL = ''; // ⚠️ CHANGE THIS TO YOUR COMPUTER'S IP
 
 // Types
 interface OccupancyData {
