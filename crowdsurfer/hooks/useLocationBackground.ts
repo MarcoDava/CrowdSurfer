@@ -1,55 +1,69 @@
-import { useEffect, useState } from 'react';
-import * as Location from 'expo-location';
-import * as TaskManager from 'expo-task-manager';
 import getLocalTimeString from '@/hooks/getLocalTimeString';
 import prependUserLocation from '@/hooks/prependUserLocation';
-
-
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import { useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 const LOCATION_TASK_NAME = 'background-location-task';
-const BACKGROUND_LOCATION_INTERVAL = 300000; // 5 minutes in milliseconds
+const BACKGROUND_INTERVAL_MS = 300_000; // 5 minutes
 
-TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-  const localTime = getLocalTimeString();
-  if (error) {
-    console.error('Background location error:', error);
-    return;
-  }
-  if (data) {
-    const { locations } = data as any;
-    if (locations && locations.length > 0) {
-      const loc = locations[0];
-      await prependUserLocation({//sends the data to a json file or creates a new one if it doesn't exist, this will eventually be replaced with a database
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-        timestamp: getLocalTimeString(),//format may need a change in the future
-      });
-    }
-  }
-});
-
-
+// Background task registration must happen at module load time on native.
+// TaskManager and background location are not available on web.
+if (Platform.OS !== 'web') {
+  TaskManager.defineTask(
+    LOCATION_TASK_NAME,
+    async ({ data, error }: { data: any; error: any }) => {
+      if (error) {
+        console.error('Background location error:', error);
+        return;
+      }
+      const { locations } = data ?? {};
+      if (locations?.length > 0) {
+        const { latitude, longitude } = locations[0].coords;
+        await prependUserLocation({
+          latitude,
+          longitude,
+          timestamp: getLocalTimeString(),
+        });
+      }
+    },
+  );
+}
 
 const useLocationBackground = () => {
-  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const watchRef = useRef<Location.LocationSubscription | null>(null);
 
-
+  // Start location tracking
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
         return;
       }
-      let { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+
+      if (Platform.OS === 'web') {
+        // Web only supports foreground watching via the browser Geolocation API
+        watchRef.current = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, timeInterval: 60_000 },
+          (loc) => setLocation(loc),
+        );
+        return;
+      }
+
+      // Native: request background permission and start the background task
+      const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
       if (bgStatus !== 'granted') {
         setErrorMsg('Permission to access background location was denied');
         return;
       }
+
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.High,
-        timeInterval: BACKGROUND_LOCATION_INTERVAL, // 5 minutes in ms
+        timeInterval: BACKGROUND_INTERVAL_MS,
         distanceInterval: 0,
         showsBackgroundLocationIndicator: true,
         foregroundService: {
@@ -60,25 +74,32 @@ const useLocationBackground = () => {
     })();
 
     return () => {
-      Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME).then((started) => {
-        if (started) Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      });
+      // Clean up web watch subscription
+      watchRef.current?.remove();
+
+      // Stop native background task
+      if (Platform.OS !== 'web') {
+        Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME).then((started) => {
+          if (started) Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        });
+      }
     };
   }, []);
 
-  // Optionally, get the last known location for display
+  // Seed the initial position from the last known fix (native only)
   useEffect(() => {
-    (async () => {
-      const last = await Location.getLastKnownPositionAsync();
-      if (last) setLocation(last);
-    })();
+    if (Platform.OS !== 'web') {
+      Location.getLastKnownPositionAsync().then((last) => {
+        if (last) setLocation(last);
+      });
+    }
   }, []);
-  const latitude = location?.coords.latitude??-1;
-  const longitude = location?.coords.longitude??-1; 
 
-  return { latitude, longitude, errorMsg };
-  
-  
+  return {
+    latitude: location?.coords.latitude ?? -1,
+    longitude: location?.coords.longitude ?? -1,
+    errorMsg,
+  };
 };
 
 export default useLocationBackground;

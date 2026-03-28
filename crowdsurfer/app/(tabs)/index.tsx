@@ -1,239 +1,137 @@
+import CampusMap from '@/components/CampusMap';
 import KeyLocations from '@/data/KeyLocations.json';
 import UserLocations from '@/data/UserLocations.json';
 import useLocationBackground from '@/hooks/useLocationBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Geocoder from 'react-native-geocoding';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Heatmap, Marker } from 'react-native-maps';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-Geocoder.init("AIzaSyD78InqEVaxOaVeverkrfA9UoScmhrwVFY");
-// Initial McMaster Region
-const INITIAL_REGION = {
-  latitude: 43.2628,
-  longitude: -79.9177,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
-};
+// TODO: move this key to EXPO_PUBLIC_GOOGLE_MAPS_KEY in your .env file
+Geocoder.init('AIzaSyD78InqEVaxOaVeverkrfA9UoScmhrwVFY');
 
-const userGeocodedAddress = async (latitude: number, longitude: number) => {
+const COUNTDOWN_SECONDS = 300;
+
+const getAddress = async (lat: number, lng: number): Promise<string> => {
+  if (Platform.OS === 'web') {
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
   try {
-    const json = await Geocoder.from(latitude||0, longitude||0);
-    const addressComponent = json.results[0]?.formatted_address || "Unknown location";
-    return addressComponent;
-  } catch (error) {
-    return "Unknown location";
+    const json = await Geocoder.from(lat, lng);
+    return json.results[0]?.formatted_address ?? 'Unknown location';
+  } catch {
+    return 'Unknown location';
   }
 };
 
-const formatAddress = (address:string, location: boolean, city:boolean, postalCode:boolean, country:boolean) => {
-  address.split(',')
-  let formattedAddress = "";
-  if (location) {
-    formattedAddress += address.split(',')[0] || "";
-  }
-  if (city) {
-    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[1] || "");
-  }
-  if (country) {
-    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[3] || "");
-  }
-  if (postalCode) {
-    formattedAddress += (formattedAddress ? ", " : "") + (address.split(',')[2] || "");
-  }
-  return formattedAddress;
-}
-
-
-const formatCountdown = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
+const shortAddress = (full: string): string => {
+  const parts = full.split(',');
+  return [parts[0], parts[1]].filter(Boolean).join(',');
 };
 
-export default function MapScreen() { 
-  const { latitude, longitude , errorMsg } = useLocationBackground(); 
+const formatCountdown = (s: number) =>
+  `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const [address, setAddress] = useState("Loading location...");
+const markers = KeyLocations.map((item) => ({
+  id: item.id,
+  latitude: item.location.latitude,
+  longitude: item.location.longitude,
+  title: item.title,
+}));
 
+const heatPoints = UserLocations.map((item) => ({
+  latitude: item.location.latitude,
+  longitude: item.location.longitude,
+}));
 
-  const COUNTDOWN_TIME = 300; // 5 minutes in seconds
-  const [countdown, setCountdown] = useState(COUNTDOWN_TIME);
-  
-  React.useEffect(() => {
-    if (latitude && longitude) {
-      (async () => {
-        const addr = await userGeocodedAddress(latitude, longitude);
-        setAddress(addr);
-      })();
+export default function MapScreen() {
+  const { latitude, longitude, errorMsg } = useLocationBackground();
+  const [address, setAddress] = useState('Locating…');
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
+  const refreshRef = useRef<TouchableOpacity>(null);
+
+  useEffect(() => {
+    if (latitude > 0 && longitude > 0) {
+      getAddress(latitude, longitude).then((addr) => setAddress(shortAddress(addr)));
     }
   }, [latitude, longitude]);
 
-
-  React.useEffect(() => {
-  const interval = setInterval(() => {
-    setCountdown((prev) => {
-      if (prev === 1) return COUNTDOWN_TIME;
-      return prev - 1;
-    });
-  }, 1000);
-
-  return () => clearInterval(interval);
-}, []);
-
-
-  const [markersList, setMarkersList] = useState (
-    KeyLocations.map((item) => ({
-      id: item.id,
-      latitude: item.location.latitude,
-      longitude: item.location.longitude,
-      title: item.title,
-    }))
-  );
-
-  const [userListLocation, setUserListLocation] = useState(
-    UserLocations.map((item) => ({
-      id: item.id,
-      latitude: item.location.latitude,
-      longitude: item.location.longitude,
-    }))
-  );
+  useEffect(() => {
+    const id = setInterval(
+      () => setCountdown((prev) => (prev <= 1 ? COUNTDOWN_SECONDS : prev - 1)),
+      1000,
+    );
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
-        {/* Your Location Card */}
-        <View style={styles.locationCard}>
-          <LinearGradient
-            colors={['#E9D5FF', '#C7D2FE']}
-            style={styles.locationCardGradient}
-          >
-            <View style={styles.locationCardContent}>
-              <View style={styles.locationIcon}>
-                <Ionicons name="paper-plane" size={24} color="#7C3AED" />
+
+        {/* ── Location card ── */}
+        <View style={styles.card}>
+          <LinearGradient colors={['#E9D5FF', '#C7D2FE']} style={styles.cardGradient}>
+            <View style={styles.row}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="paper-plane" size={22} color="#7C3AED" />
               </View>
-              <View style={styles.locationInfo}>
-                <Text style={styles.locationTitle}>Your Location : {formatAddress(address,true,true,false,false)}</Text>
-                <Text style={styles.locationStatus}>Location found</Text>
-                <View style={styles.locationMeta}>
-                  <View style={styles.metaItem}>
-                    <Ionicons name="time" size={12} color="#6B7280" />
-                    <Text style={styles.metaText}>Updating location in: {formatCountdown(countdown)} </Text>
-                  </View>
-                  <View style={styles.nearbyBadge}>
-                    <Text style={styles.nearbyText}>{Object.keys(KeyLocations).length} locations nearby</Text>{/* This could be dynamic based on actual nearby locations */}
+
+              <View style={styles.cardBody}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {errorMsg ? 'Location unavailable' : address}
+                </Text>
+                <Text style={styles.cardSub}>
+                  {errorMsg || 'Location active'}
+                </Text>
+                <View style={styles.metaRow}>
+                  <Ionicons name="time-outline" size={12} color="#6B7280" />
+                  <Text style={styles.metaText}>
+                    Updating in {formatCountdown(countdown)}
+                  </Text>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{KeyLocations.length} nearby</Text>
                   </View>
                 </View>
               </View>
-              <TouchableOpacity style={styles.refreshButton}>
-                <Ionicons name="refresh" size={20} color="#7C3AED" />
-              </TouchableOpacity>
             </View>
           </LinearGradient>
         </View>
 
-        {/* Crowd Status Indicators */}
-        <View style={styles.statusContainer}>
+        {/* ── Status summary ── */}
+        <View style={styles.statusRow}>
           <View style={styles.statusCard}>
-            <LinearGradient
-              colors={['#DCFCE7', '#BBF7D0']}
-              style={styles.statusCardGradient}
-            >
-              <View style={styles.statusContent}>
-                <View style={styles.statusIcon}>
-                  <View style={styles.greenDot} />
-                </View>
-                <Text style={styles.statusTitle}>Quiet Now</Text>
-                <Text style={styles.statusCount}>2</Text>
-              </View>
+            <LinearGradient colors={['#DCFCE7', '#BBF7D0']} style={styles.statusGradient}>
+              <View style={[styles.dot, { backgroundColor: '#16A34A' }]} />
+              <Text style={styles.statusLabel}>Quiet</Text>
+              <Text style={[styles.statusCount, { color: '#16A34A' }]}>2</Text>
             </LinearGradient>
           </View>
-          
           <View style={styles.statusCard}>
-            <LinearGradient
-              colors={['#FED7D7', '#FECACA']}
-              style={styles.statusCardGradient}
-            >
-              <View style={styles.statusContent}>
-                <View style={styles.statusIcon}>
-                  <View style={styles.redDot} />
-                </View>
-                <Text style={styles.statusTitle}>Very Busy</Text>
-                <Text style={styles.statusCount}>1</Text>
-              </View>
+            <LinearGradient colors={['#FED7D7', '#FECACA']} style={styles.statusGradient}>
+              <View style={[styles.dot, { backgroundColor: '#DC2626' }]} />
+              <Text style={styles.statusLabel}>Very Busy</Text>
+              <Text style={[styles.statusCount, { color: '#DC2626' }]}>1</Text>
             </LinearGradient>
           </View>
         </View>
 
-        {/* Campus Map Section */}
-        <View style={styles.mapCard}>
-          <LinearGradient
-            colors={['#DBEAFE', '#BFDBFE']}
-            style={styles.mapCardGradient}
-          >
+        {/* ── Campus map ── */}
+        <View style={styles.card}>
+          <LinearGradient colors={['#DBEAFE', '#BFDBFE']} style={styles.cardGradient}>
             <View style={styles.mapHeader}>
-              <Ionicons name="location" size={20} color="#2563EB" />
+              <Ionicons name="location" size={18} color="#2563EB" />
               <Text style={styles.mapTitle}>Campus Map</Text>
             </View>
-
-            <MapView 
-              style={styles.map} 
-              initialRegion={INITIAL_REGION}
-            > 
-            <Heatmap
-              points={userListLocation.map((user) => ({
-                latitude: user.latitude,
-                longitude: user.longitude,}
-              ))}
-              radius={40}
-              gradient={{
-                colors:["green", "orange", "red"],
-                startPoints: [0.2, 0.5, 0.8],
-                colorMapSize: 100,
-              }}
-            >
-              
-              </Heatmap>                   
-              {
-                markersList.map((marker) =>{
-                  return(
-                    <Marker
-                    key={marker.id}  
-                    coordinate={{
-                        latitude:marker.latitude, 
-                        longitude: marker.longitude
-                      }}
-                      title={marker.title}
-                    />
-                  )
-                })
-              } 
-              <Marker
-                coordinate={{
-                  latitude: latitude || INITIAL_REGION.latitude,
-                  longitude: longitude || INITIAL_REGION.longitude,
-                }}
-                title="You are here"
-                />
-              
-            </MapView>
-                     
-
-            <View style={styles.mapPlaceholder}>
-              <Ionicons name="location" size={48} color="#2563EB" />
-              <Text style={styles.mapPlaceholderTitle}>Map View</Text>
-              <Text style={styles.mapPlaceholderText}>
-                Tap locations below to see details
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.fab}>
-              <Ionicons name="add" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+            <CampusMap
+              heatPoints={heatPoints}
+              markers={markers}
+              userLatitude={latitude}
+              userLongitude={longitude}
+            />
           </LinearGradient>
-          
         </View>
-        
+
       </View>
     </ScrollView>
   );
@@ -246,87 +144,76 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    gap: 20,
+    gap: 16,
     backgroundColor: '#FFFFFF',
   },
-  locationCard: {
+
+  // Generic card
+  card: {
     borderRadius: 20,
     shadowColor: '#A3B1C6',
-    shadowOffset: { width: 8, height: 8 },
+    shadowOffset: { width: 6, height: 6 },
     shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  locationCardGradient: {
+  cardGradient: {
     borderRadius: 20,
-    padding: 20,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -2, height: -2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 4,
-    elevation: 4,
+    padding: 18,
   },
-  locationCardContent: {
+
+  // Location card internals
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
   },
-  locationIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  iconCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(255,255,255,0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  locationInfo: {
+  cardBody: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
-  locationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: '#374151',
   },
-  locationStatus: {
-    fontSize: 14,
+  cardSub: {
+    fontSize: 13,
     color: '#6B7280',
   },
-  locationMeta: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    marginTop: 6,
   },
   metaText: {
     fontSize: 12,
     color: '#6B7280',
+    flex: 1,
   },
-  nearbyBadge: {
+  badge: {
     backgroundColor: '#16A34A',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
-  nearbyText: {
-    fontSize: 12,
+  badgeText: {
+    fontSize: 11,
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  refreshButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statusContainer: {
+
+  // Status row
+  statusRow: {
     flexDirection: 'row',
     gap: 12,
   },
@@ -334,118 +221,42 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     shadowColor: '#A3B1C6',
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  statusCardGradient: {
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -2, height: -2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 4,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
     elevation: 4,
   },
-  statusContent: {
+  statusGradient: {
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  statusIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
-  greenDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#16A34A',
-  },
-  redDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#DC2626',
-  },
-  statusTitle: {
-    fontSize: 14,
+  statusLabel: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
   },
   statusCount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#16A34A',
+    fontSize: 28,
+    fontWeight: '800',
   },
-  mapCard: {
-    borderRadius: 20,
-    shadowColor: '#A3B1C6',
-    shadowOffset: { width: 8, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  mapCardGradient: {
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -2, height: -2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+
+  // Map card internals
   mapHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 12,
   },
   mapTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#2563EB',
-  },
-  mapSubtitle: {
-    fontSize: 14,
-    color: '#3B82F6',
-    marginBottom: 20,
-  },
-  mapPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    gap: 12,
-  },
-  mapPlaceholderTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2563EB',
-  },
-  mapPlaceholderText: {
-    fontSize: 14,
-    color: '#3B82F6',
-    textAlign: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#EA580C',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  map: {
-  width: '100%',
-  height: 300, // or any height you want
-  borderRadius: 20,
   },
 });
