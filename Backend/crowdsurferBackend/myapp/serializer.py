@@ -1,88 +1,64 @@
-# Converts complex data into native python data
 from rest_framework import serializers
-from .models import Report, scrapeData, keyLocation, userLocation
+
+from .models import Report, keyLocation, scrapeData, userLocation
+
 
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = '__all__'  # This includes all fields from the model
-    
+        fields = ['id', 'location_Id', 'user_Id', 'crowd_Level', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
     def validate_crowd_Level(self, value):
-        """
-        Custom validation for crowd level
-        """
-        valid_levels = ['quiet', 'not_busy', 'busy', 'very_busy', 'full']
-        if value not in valid_levels:
-            raise serializers.ValidationError(f"Invalid crowd level. Must be one of: {valid_levels}")
+        valid = [choice[0] for choice in Report.CROWD_LEVELS]
+        if value not in valid:
+            raise serializers.ValidationError(f"Must be one of: {valid}")
         return value
+
 
 class ScrapeDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = scrapeData
-        fields = ['id', 'location_Id', 'occupancy']
-    
+        fields = ['id', 'location_Id', 'occupancy', 'scraped_at']
+        read_only_fields = ['id', 'scraped_at']
+
     def validate_occupancy(self, value):
-        """
-        Custom validation for occupancy percentage
-        """
-        if value < 0 or value > 100:
+        if not 0 <= value <= 100:
             raise serializers.ValidationError("Occupancy must be between 0 and 100")
         return value
 
-# Additional serializers for specific use cases
-class ReportCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer specifically for creating reports
-    """
-    class Meta:
-        model = Report
-        fields = ['location_Id', 'crowd_Level']
-    
-    def create(self, validated_data):
-        return Report.objects.create(**validated_data)
-
-class OccupancySummarySerializer(serializers.Serializer):
-    """
-    Custom serializer for occupancy summary data
-    """
-    location_Id = serializers.CharField(max_length=10)
-    occupancy = serializers.IntegerField()
-    crowd_Level = serializers.CharField(max_length=20)
-    last_updated = serializers.DateTimeField()
-    report_count = serializers.IntegerField()
 
 class KeyLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = keyLocation
-        fields = ['location_id', 'occupancy']
-    
-    # def validate_library_id(self, value):
-    #     """
-    #     Custom validation for library ID
-    #     """
-    #     if value not in keyLocationsData:
-    #         raise serializers.ValidationError("Invalid library ID")
-    def validate_occupancy(self, value):
-        """
-        Custom validation for occupancy percentage
-        """
-        if value < 0 or value > 100:
-            raise serializers.ValidationError("Occupancy must be between 0 and 100")
-        return value
-    
+        fields = [
+            'id', 'location_Id', 'name',
+            'latitude', 'longitude',
+            'radius_meters', 'capacity',
+            'occupancy', 'updated_at',
+        ]
+        read_only_fields = ['id', 'updated_at']
+
+
 class UserLocationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = keyLocation
-        fields = ['user_id', 'latitude', 'longitude']
-    
+        model = userLocation  # was incorrectly referencing keyLocation
+        fields = ['id', 'user_Id', 'latitude', 'longitude', 'updated_at']
+        read_only_fields = ['id', 'updated_at']
+
     def validate_latitude(self, value):
-        
-        if value < -90 or value > 90:
+        if not -90 <= value <= 90:
             raise serializers.ValidationError("Latitude must be between -90 and 90")
         return value
-    
+
     def validate_longitude(self, value):
-        
-        if value < -180 or value > 180:
+        if not -180 <= value <= 180:
             raise serializers.ValidationError("Longitude must be between -180 and 180")
         return value
+
+
+class HeatmapPointSerializer(serializers.Serializer):
+    """Lightweight serializer for heatmap GPS points."""
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+    weight = serializers.FloatField(default=1.0)
