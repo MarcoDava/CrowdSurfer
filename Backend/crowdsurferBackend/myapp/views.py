@@ -1,212 +1,191 @@
-from django.shortcuts import render
-from rest_framework import generics, viewsets, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from datetime import timedelta
+
+from django.utils import timezone
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view
-from .models import Report, scrapeData, keyLocation, userLocation
-from .serializer import ReportSerializer, ScrapeDataSerializer , KeyLocationSerializer, UserLocationSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-# Report Views
-class ReportView(generics.ListCreateAPIView):
-    """
-    This single class handles both GET (list) and POST (create) requests.
-    """
-    queryset = Report.objects.all()
-    serializer_class = ReportSerializer
+from .models import Report, keyLocation, scrapeData, userLocation
+from .ReportAlgorithm import compute_occupancy
+from .serializer import (
+    HeatmapPointSerializer,
+    KeyLocationSerializer,
+    ReportSerializer,
+    ScrapeDataSerializer,
+    UserLocationSerializer,
+)
 
-class ReportDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles GET, PUT, PATCH, DELETE for individual reports
-    """
-    queryset = Report.objects.all()
-    serializer_class = ReportSerializer
+HEATMAP_WINDOW_MINUTES = 10
 
-# ScrapeData Views
+
+# ── ViewSets (full CRUD for admin / scraper use) ──────────────────────────────
+
 class ScrapeDataViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for CRUD operations on scrapeData
-    """
     queryset = scrapeData.objects.all()
     serializer_class = ScrapeDataSerializer
 
-# KeyLocation Views
+
 class KeyLocationViewSet(viewsets.ModelViewSet):
     queryset = keyLocation.objects.all()
     serializer_class = KeyLocationSerializer
 
-# UserLocation Views
+
 class UserLocationViewSet(viewsets.ModelViewSet):
     queryset = userLocation.objects.all()
     serializer_class = UserLocationSerializer
 
-# Custom API Views for Frontend Integration
-@api_view(['GET'])
-def get_latest_occupancy(request):
-    """
-    Get the latest occupancy data for all locations
-    """
-    try:
-        # Get the latest record for each location
-        latest_data = []
-        locations = scrapeData.objects.values_list('location_Id', flat=True).distinct()
-        
-        for location_id in locations:
-            latest_record = scrapeData.objects.filter(
-                location_Id=location_id
-            ).order_by('-id').first()
-            
-            if latest_record:
-                latest_data.append({
-                    'location_Id': latest_record.location_Id,
-                    'occupancy': latest_record.occupancy,
-                    'data': latest_record.data,
-                    'timestamp': latest_record.id  # Using id as rough timestamp
-                })
-        
-        return Response(latest_data, status=status.HTTP_200_OK)
-    
-    except Exception as e:
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
 
-@api_view(['GET'])
-def get_location_occupancy(request, location_id):
-    """
-    Get occupancy data for a specific location
-    """
-    try:
-        latest_record = scrapeData.objects.filter(
-            location_Id=location_id
-        ).order_by('-id').first()
-        
-        if not latest_record:
-            return Response(
-                {'error': 'Location not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = ScrapeDataSerializer(latest_record)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    except Exception as e:
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+# ── Report endpoints ──────────────────────────────────────────────────────────
 
-@api_view(['POST'])
-def create_report(request):
-    """
-    Create a new crowd report
-    """
-    try:
-        serializer = ReportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    except Exception as e:
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+class ReportView(generics.ListCreateAPIView):
+    """GET all reports / POST a new report."""
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+
+
+class ReportDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """GET / PUT / DELETE a single report by pk."""
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+
 
 @api_view(['GET'])
 def get_reports_by_location(request, location_id):
-    """
-    Get all reports for a specific location
-    """
-    try:
-        reports = Report.objects.filter(location_Id=location_id)
-        serializer = ReportSerializer(reports, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    except Exception as e:
-        return Response(
-            {'error': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    """Return all reports for a specific location."""
+    reports = Report.objects.filter(location_Id=location_id)
+    return Response(ReportSerializer(reports, many=True).data)
 
-# Alternative class-based view approach for reports
-class ReportAPIView(APIView):
+
+# ── Occupancy endpoints ───────────────────────────────────────────────────────
+
+@api_view(['GET'])
+def get_latest_occupancy(request):
     """
-    Custom API view for reports with more control
+    Compute and return occupancy for every key location.
+
+    Response shape (list):
+      [{location_Id, name, occupancy, latitude, longitude, updated_at, timestamp}]
+
+    The algorithm blends scraper data (40%), recent crowd reports (30%), and
+    active-user proximity (30%).  Results are persisted back to keyLocation.
     """
-    
-    def get(self, request):
-        """Get all reports"""
-        reports = Report.objects.all()
-        serializer = ReportSerializer(reports, many=True)
-        return Response({
-            'status': 'success',
-            'data': serializer.data,
-            'count': len(serializer.data)
+    results = []
+    for loc in keyLocation.objects.all():
+        loc.occupancy = compute_occupancy(loc)
+        loc.save(update_fields=['occupancy', 'updated_at'])
+        results.append({
+            'location_Id': loc.location_Id,
+            'name': loc.name,
+            'occupancy': loc.occupancy,
+            'latitude': loc.latitude,
+            'longitude': loc.longitude,
+            'updated_at': loc.updated_at.isoformat(),
+            # millisecond timestamp so the frontend can display "X min ago"
+            'timestamp': int(loc.updated_at.timestamp() * 1000),
         })
-    
-    def post(self, request):
-        """Create a new report"""
-        serializer = ReportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'status': 'success',
-                'message': 'Report created successfully',
-                'data': serializer.data
-            }, status=status.HTTP_201_CREATED)
-        
-        return Response({
-            'status': 'error',
-            'message': 'Invalid data',
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-class UpdateKeyLocationsView(APIView):
-    def post(self, request):
-        try:
-            serializer = KeyLocationSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({
-                    'status': 'success',
-                    'message': 'Key location saved successfully',
-                    'data': serializer.data
-                }, status=status.HTTP_201_CREATED)
-            
-            return Response({
-                'status': 'error',
-                'message': 'Invalid data',
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
-        except Exception as e:
-            return Response({
-                'status': 'error',
-                'message': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(results)
+
+
+@api_view(['GET'])
+def get_location_occupancy(request, location_id):
+    """Compute and return occupancy for a single location."""
+    try:
+        loc = keyLocation.objects.get(location_Id=location_id)
+    except keyLocation.DoesNotExist:
+        return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    loc.occupancy = compute_occupancy(loc)
+    loc.save(update_fields=['occupancy', 'updated_at'])
+    return Response(KeyLocationSerializer(loc).data)
+
+
+# ── Heatmap endpoint ──────────────────────────────────────────────────────────
+
+@api_view(['GET'])
+def get_heatmap_points(request):
+    """
+    Return GPS positions of all users active in the last HEATMAP_WINDOW_MINUTES.
+
+    Response shape (list):
+      [{latitude, longitude, weight}]
+
+    Each user contributes weight=1.0.  The frontend heatmap clusters
+    overlapping points into a heat gradient automatically.
+    """
+    cutoff = timezone.now() - timedelta(minutes=HEATMAP_WINDOW_MINUTES)
+    active = userLocation.objects.filter(updated_at__gte=cutoff)
+    points = [
+        {'latitude': u.latitude, 'longitude': u.longitude, 'weight': 1.0}
+        for u in active
+    ]
+    return Response(points)
+
+
+# ── User location ─────────────────────────────────────────────────────────────
 
 class SaveUserLocationView(APIView):
+    """
+    Upsert a user's current GPS position.
+
+    POST body: {user_Id, latitude, longitude}
+
+    One row is kept per user_Id and updated in place on every call so the
+    table never grows unboundedly.  The updated_at timestamp is refreshed
+    automatically (auto_now=True on the model), which is what the heatmap
+    and proximity algorithm use to filter active users.
+    """
+
     def post(self, request):
+        serializer = UserLocationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {'status': 'error', 'errors': serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = serializer.validated_data
+        obj, created = userLocation.objects.update_or_create(
+            user_Id=data['user_Id'],
+            defaults={
+                'latitude': data['latitude'],
+                'longitude': data['longitude'],
+            },
+        )
+        return Response(
+            {
+                'status': 'success',
+                'created': created,
+                'data': UserLocationSerializer(obj).data,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+
+# ── Key location management ───────────────────────────────────────────────────
+
+class UpdateKeyLocationsView(APIView):
+    """Upsert a key location by location_Id."""
+
+    def post(self, request):
+        location_id = request.data.get('location_Id')
+        if not location_id:
+            return Response(
+                {'status': 'error', 'message': 'location_Id is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
-            serializer = UserLocationSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({
-                    'status': 'success',
-                    'message': 'User location saved successfully',
-                    'data': serializer.data
-                }, status=status.HTTP_201_CREATED)
-            
-            return Response({
-                'status': 'error',
-                'message': 'Invalid location data',
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
-        except Exception as e:
-            return Response({
-                'status': 'error',
-                'message': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            instance = keyLocation.objects.get(location_Id=location_id)
+            serializer = KeyLocationSerializer(instance, data=request.data, partial=True)
+        except keyLocation.DoesNotExist:
+            serializer = KeyLocationSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': 'success', 'data': serializer.data})
+
+        return Response(
+            {'status': 'error', 'errors': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

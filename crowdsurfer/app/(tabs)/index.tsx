@@ -1,8 +1,10 @@
 import CampusMap from '@/components/CampusMap';
+import { API_BASE_URL } from '@/constants/api';
 import KeyLocations from '@/data/KeyLocations.json';
 import UserLocations from '@/data/UserLocations.json';
 import useLocationBackground from '@/hooks/useLocationBackground';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import Geocoder from 'react-native-geocoding';
@@ -33,6 +35,7 @@ const shortAddress = (full: string): string => {
 const formatCountdown = (s: number) =>
   `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
+// Static fallback markers (always shown)
 const markers = KeyLocations.map((item) => ({
   id: item.id,
   latitude: item.location.latitude,
@@ -40,7 +43,8 @@ const markers = KeyLocations.map((item) => ({
   title: item.title,
 }));
 
-const heatPoints = UserLocations.map((item) => ({
+// Static fallback heat points used until the API responds
+const STATIC_HEAT_POINTS = UserLocations.map((item) => ({
   latitude: item.location.latitude,
   longitude: item.location.longitude,
 }));
@@ -50,6 +54,9 @@ export default function MapScreen() {
   const [address, setAddress] = useState('Locating…');
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
   const refreshRef = useRef<TouchableOpacity>(null);
+
+  // Live heatmap points — replaced by API data when available
+  const [heatPoints, setHeatPoints] = useState(STATIC_HEAT_POINTS);
 
   useEffect(() => {
     if (latitude > 0 && longitude > 0) {
@@ -62,6 +69,22 @@ export default function MapScreen() {
       () => setCountdown((prev) => (prev <= 1 ? COUNTDOWN_SECONDS : prev - 1)),
       1000,
     );
+    return () => clearInterval(id);
+  }, []);
+
+  // Fetch live heatmap points; silently keep static fallback on failure
+  useEffect(() => {
+    const load = () => {
+      axios
+        .get(`${API_BASE_URL}/heatmap/`)
+        .then(({ data }) => {
+          if (Array.isArray(data) && data.length > 0) setHeatPoints(data);
+        })
+        .catch(() => {});
+    };
+    load();
+    // Refresh every 30 seconds to match live user movement
+    const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, []);
 
